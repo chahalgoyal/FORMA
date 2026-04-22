@@ -142,7 +142,7 @@ Load into Chrome: Go to `chrome://extensions/` → Enable **Developer mode** →
 
 ---
 
-## 👤 Author
+## Author
 
 <div align="center">
 
