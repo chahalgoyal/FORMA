@@ -14,14 +14,12 @@
 
 ---
 
-> **Forma** is a premium, intent-driven browser extension designed to eliminate the friction of campus placement drives. Built for students at institutions like **Chandigarh University (CU)** and **CGC**, it replaces tedious data entry with a "cozy," single-click experience that values accuracy and privacy above all else.
+> **Forma** is a premium, intent-driven browser extension designed to eliminate the friction of campus placement drives. Built for students at institutions like **Chandigarh University (CU)**, it replaces tedious data entry with a "cozy," single-click experience that values accuracy and privacy above all else.
 
 ---
 
 ## 📸 Experience Walkthrough
 
-### The "Cozy Organic" Interface
-Forma moves away from sterile, boxy AI designs. The popup and options pages use a **warm, earthy palette** and a unique **plaque-style design** that feels tactile and approachable.
 
 ### Smart Matching Engine
 Forma doesn't just look for exact labels; it understands **intent**.
@@ -32,6 +30,8 @@ Forma doesn't just look for exact labels; it understands **intent**.
 ### Adaptive Learning
 When you manually correct a field, Forma notices. It performs a **reverse-lookup** into your profile and asks if it should remember that specific mapping for every future form you encounter.
 
+### The "Cozy Organic" Interface
+Forma moves away from sterile, boxy AI designs. The popup and options pages use a **warm, earthy palette** and a unique **plaque-style design** that feels tactile and approachable.
 ---
 
 ## ✨ Full Feature List
@@ -103,6 +103,29 @@ If you aren't a developer, the easiest way to use Forma is via the ZIP release:
    - Enable **Developer mode** (top-right).
    - Click **Load unpacked** and select the folder you just extracted.
 4. **Pin it:** Click the puzzle icon in your browser and pin Forma.
+
+---
+
+## 📖 How to Use
+
+### 1. Setup your Profile
+When you first install Forma, click **Edit Profile** in the popup to get started.
+![Setup Profile](./assets/popup-incomplete.png)
+
+### 2. Fill & Save Details
+Enter your academic and personal details in the "Cozy Organic" editor and click **Save Profile**.
+![Fill Details](./assets/profile-editor-top.png)
+![Save Changes](./assets/profile-editor-bottom.png)
+
+### 3. Autofill Anywhere
+Open any Google Form and click **Autofill This Form**. You can also enable **Autofill on page load** for a zero-click experience.
+![Autofill](./assets/popup-complete.png)
+
+### 4. Review & Clear
+Forma will highlight filled fields in Sage Green. Review the counts in the results panel and clear highlights when done.
+![Results](./assets/autofill-results.png)
+
+---
 
 ### 🛠️ Developer Setup (For Contributors)
 ```bash
