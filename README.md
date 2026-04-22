@@ -110,19 +110,24 @@ If you aren't a developer, the easiest way to use Forma is via the ZIP release:
 
 ### 1. Setup your Profile
 When you first install Forma, click **Edit Profile** in the popup to get started.
+
 ![Setup Profile](./assets/zero.png)
 
 ### 2. Fill & Save Details
 Enter your academic and personal details in the "Cozy Organic" editor and click **Save Profile**.
+
 ![Fill Details](./assets/first.png)
+
 ![Save Changes](./assets/second.png)
 
 ### 3. Autofill Anywhere
 Open any Google Form and click **Autofill This Form**. You can also enable **Autofill on page load** for a zero-click experience.
+
 ![Autofill](./assets/third.png)
 
 ### 4. Review & Clear
 Forma will highlight filled fields in Sage Green. Review the counts in the results panel and clear highlights when done.
+
 ![Results](./assets/fourth.png)
 
 ---
