@@ -1,14 +1,14 @@
 <div align="center">
-<img src="./assets/logo-forma-without-bg.png" width="80" alt="Forma Logo" />
+<img src="./assets/logo-forma.png" width="80" alt="Forma Logo" />
 
 # FORMA
 
 ### A privacy-first, intent-aware autofill assistant for students.
 
+[![Download ZIP](https://img.shields.io/badge/Download-ZIP%20Release-blueviolet?style=for-the-badge&logo=archive)](https://github.com/chahalgoyal/FORMA/releases/latest)
 [![Manifest V3](https://img.shields.io/badge/Chrome-MV3-orange?style=for-the-badge&logo=google-chrome)](https://developer.chrome.com/docs/extensions/mv3)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
 [![Privacy First](https://img.shields.io/badge/Privacy-Local%20Only-success?style=for-the-badge&logo=shield)](https://github.com/chahalgoyal/FORMA)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](https://github.com/chahalgoyal/FORMA)
 
 </div>
 
@@ -94,10 +94,15 @@ When you manually correct a field, Forma notices. It performs a **reverse-lookup
 ## ⚡ Setup & Installation
 
 ### 📥 Quick Install (For Users)
-1. **Download:** Find Forma on the **[Chrome Web Store](https://chrome.google.com/webstore)** (Coming Soon).
-2. **Add:** Click "Add to Chrome."
-3. **Pin:** Click the puzzle icon and pin Forma.
-4. **Use:** Fill your profile once, then autofill any Google Form instantly.
+If you aren't a developer, the easiest way to use Forma is via the ZIP release:
+
+1. **Download:** Click the **[Download ZIP](https://github.com/chahalgoyal/FORMA/releases/latest)** badge at the top.
+2. **Extract:** Unzip the `forma-extension.zip` folder to a safe location.
+3. **Load in Chrome:** 
+   - Open Chrome and go to `chrome://extensions/`.
+   - Enable **Developer mode** (top-right).
+   - Click **Load unpacked** and select the folder you just extracted.
+4. **Pin it:** Click the puzzle icon in your browser and pin Forma.
 
 ### 🛠️ Developer Setup (For Contributors)
 ```bash
