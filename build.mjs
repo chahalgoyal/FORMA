@@ -2,34 +2,16 @@ import { build, context } from 'esbuild';
 import fs from 'fs';
 import path from 'path';
 
-// Helper to copy directory recursively
-const copyDir = (src, dest) => {
-  if (!fs.existsSync(src)) return;
-  fs.mkdirSync(dest, { recursive: true });
-  const entries = fs.readdirSync(src, { withFileTypes: true });
-  for (let entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-    entry.isDirectory() ? copyDir(srcPath, destPath) : fs.copyFileSync(srcPath, destPath);
-  }
-};
-
-// Clean dist folder
+// ─── Clean dist folder ──────────────────────
 if (fs.existsSync('dist')) {
   fs.rmSync('dist', { recursive: true, force: true });
 }
 fs.mkdirSync('dist');
-
-// Copy static assets
-copyDir('assets', 'dist/assets');
-fs.copyFileSync('manifest.json', 'dist/manifest.json');
-fs.copyFileSync('src/popup/popup.html', 'dist/popup.html');
-fs.copyFileSync('src/popup/popup.css', 'dist/popup.css');
-fs.copyFileSync('src/options/options.html', 'dist/options.html');
-fs.copyFileSync('src/options/options.css', 'dist/options.css');
+fs.mkdirSync('dist/assets', { recursive: true });
 
 const isWatch = process.argv.includes('--watch');
 
+// ─── esbuild config ─────────────────────────
 const shared = {
   bundle: true,
   target: 'chrome120',
@@ -46,6 +28,53 @@ const entryPoints = [
   { entryPoints: ['src/options/options.ts'], outfile: 'dist/options.js' },
 ];
 
+// ─── Copy & fix static files ────────────────
+
+// Helper: read file, apply replacements, write to dist
+function copyAndFix(src, dest, replacements = []) {
+  let content = fs.readFileSync(src, 'utf-8');
+  for (const [find, replace] of replacements) {
+    content = content.replaceAll(find, replace);
+  }
+  fs.writeFileSync(dest, content, 'utf-8');
+}
+
+// 1. Manifest — rewrite paths to be relative to dist root
+copyAndFix('manifest.json', 'dist/manifest.json', [
+  ['src/popup/popup.html', 'popup.html'],
+  ['src/options/options.html', 'options.html'],
+  ['dist/service-worker.js', 'service-worker.js'],
+  ['dist/content.js', 'content.js'],
+]);
+
+// 2. Popup HTML — fix logo and script paths
+copyAndFix('src/popup/popup.html', 'dist/popup.html', [
+  ['../../assets/logo-forma-without-bg.png', 'assets/logo-forma-without-bg.png'],
+  ['../../dist/popup.js', 'popup.js'],
+]);
+
+// 3. Options HTML — fix logo and script paths
+copyAndFix('src/options/options.html', 'dist/options.html', [
+  ['../../assets/logo-forma-without-bg.png', 'assets/logo-forma-without-bg.png'],
+  ['../../dist/options.js', 'options.js'],
+]);
+
+// 4. CSS files — straight copy (no path fixes needed)
+fs.copyFileSync('src/popup/popup.css', 'dist/popup.css');
+fs.copyFileSync('src/options/options.css', 'dist/options.css');
+
+// 5. Logo assets — only copy the ones the extension actually uses
+const logoFiles = ['logo-forma.png', 'logo-forma-without-bg.png'];
+for (const file of logoFiles) {
+  const src = path.join('assets', file);
+  if (fs.existsSync(src)) {
+    fs.copyFileSync(src, path.join('dist', 'assets', file));
+  }
+}
+
+console.log('📦 Static files copied to dist/');
+
+// ─── Build JS ────────────────────────────────
 if (isWatch) {
   console.log('👀 Watching for changes...');
   const contexts = await Promise.all(
@@ -56,5 +85,5 @@ if (isWatch) {
   await Promise.all(
     entryPoints.map((ep) => build({ ...shared, ...ep }))
   );
-  console.log('✅ Build complete.');
+  console.log('✅ Build complete. dist/ is ready to load as an unpacked extension.');
 }

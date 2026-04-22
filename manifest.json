@@ -2,38 +2,34 @@
   "manifest_version": 3,
   "name": "Forma",
   "version": "1.0.0",
-  "description": "Premium, privacy-first student form autofill assistant.",
-  "permissions": [
-    "storage",
-    "activeTab"
-  ],
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "assets/logo-forma.png",
-      "48": "assets/logo-forma.png",
-      "128": "assets/logo-forma.png"
-    }
-  },
-  "options_page": "options.html",
-  "background": {
-    "service_worker": "service-worker.js",
-    "type": "module"
-  },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://docs.google.com/forms/*"
-      ],
-      "js": [
-        "content.js"
-      ],
-      "run_at": "document_idle"
-    }
-  ],
+  "description": "Smart autofill for placement and internship Google Forms.",
   "icons": {
     "16": "assets/logo-forma.png",
     "48": "assets/logo-forma.png",
     "128": "assets/logo-forma.png"
-  }
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "Forma"
+  },
+  "options_page": "src/options/options.html",
+  "background": {
+    "service_worker": "dist/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://docs.google.com/forms/*"],
+      "js": ["dist/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://docs.google.com/forms/*"
+  ]
 }
