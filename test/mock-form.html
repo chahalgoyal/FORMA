@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mock Google Form — Forma Test</title>
+  <style>
+    /* Simplified Google Forms-like styling for testing */
+    body { font-family: Arial, sans-serif; max-width: 640px; margin: 40px auto; background: #f0ebf8; }
+    .freebirdFormviewerComponentsQuestionBaseRoot {
+      background: white; margin: 16px 0; padding: 24px; border-radius: 8px;
+      border: 1px solid #dadce0; border-left: none;
+    }
+    .freebirdFormviewerComponentsQuestionBaseTitle {
+      font-size: 16px; margin-bottom: 12px; color: #202124;
+    }
+    input[type="text"], input[type="email"], textarea {
+      width: 100%; padding: 8px 0; border: none; border-bottom: 1px solid #dadce0;
+      font-size: 14px; outline: none;
+    }
+    div[role="radio"] {
+      padding: 8px 12px; margin: 4px 0; cursor: pointer; border-radius: 4px;
+    }
+    div[role="radio"]:hover { background: #f8f8ff; }
+    div[role="listbox"] {
+      padding: 8px 12px; border: 1px solid #dadce0; border-radius: 4px; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align:center; color: #5f6368; font-weight: 400;">Campus Placement Registration — Mock Form</h1>
+
+  <!-- Text: Student Full Name -->
+  <div class="freebirdFormviewerComponentsQuestionBaseRoot" data-item-id="q1">
+    <div role="heading" class="freebirdFormviewerComponentsQuestionBaseTitle">
+      Student Full Name *
+    </div>
+    <div class="freebirdFormviewerComponentsQuestionTextRoot">
+      <input type="text" class="quantumWizTextinputPaperinputInput" jsname="YPqjbf" />
+    </div>
+  </div>
+
+  <!-- Text: Personal Email -->
+  <div class="freebirdFormviewerComponentsQuestionBaseRoot" data-item-id="q2">
+    <div role="heading" class="freebirdFormviewerComponentsQuestionBaseTitle">
+      Email ID (Personal, not college domain) *
+    </div>
+    <div class="freebirdFormviewerComponentsQuestionTextRoot">
+      <input type="email" class="quantumWizTextinputPaperinputInput" jsname="YPqjbf" />
+    </div>
+  </div>
+
+  <!-- Text: Phone Number -->
+  <div class="freebirdFormviewerComponentsQuestionBaseRoot" data-item-id="q3">
+    <div role="heading" class="freebirdFormviewerComponentsQuestionBaseTitle">
+      Mobile Number (10 digit, without country code) *
+    </div>
+    <div class="freebirdFormviewerComponentsQuestionTextRoot">
+      <input type="text" class="quantumWizTextinputPaperinputInput" jsname="YPqjbf" />
+    </div>
+  </div>
+
+  <!-- Text: Enrollment Number -->
+  <div class="freebirdFormviewerComponentsQuestionBaseRoot" data-item-id="q4">
+    <div role="heading" class="freebirdFormviewerComponentsQuestionBaseTitle">
+      Enrollment Number *
+    </div>
+    <div class="freebirdFormviewerComponentsQuestionTextRoot">
+      <input type="text" class="quantumWizTextinputPaperinputInput" jsname="YPqjbf" />
+    </div>
+  </div>
+
+  <!-- Radio: Gender -->
+  <div class="freebirdFormviewerComponentsQuestionBaseRoot" data-item-id="q5">
+    <div role="heading" class="freebirdFormviewerComponentsQuestionBaseTitle">
+      Gender *
+    </div>
+    <div class="freebirdFormviewerComponentsQuestionRadioRoot">
+      <div role="radio" class="freebirdFormviewerComponentsQuestionRadioOptionContainer">
+        <span>Male</span>
+      </div>
+      <div role="radio" class="freebirdFormviewerComponentsQuestionRadioOptionContainer">
+        <span>Female</span>
+      </div>
+      <div role="radio" class="freebirdFormviewerComponentsQuestionRadioOptionContainer">
+        <span>Other</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Radio: Active Backlog -->
+  <div class="freebirdFormviewerComponentsQuestionBaseRoot" data-item-id="q6">
+    <div role="heading" class="freebirdFormviewerComponentsQuestionBaseTitle">
+      Do you have any active backlog? *
+    </div>
+    <div class="freebirdFormviewerComponentsQuestionRadioRoot">
+      <div role="radio" class="freebirdFormviewerComponentsQuestionRadioOptionContainer">
+        <span>Yes</span>
+      </div>
+      <div role="radio" class="freebirdFormviewerComponentsQuestionRadioOptionContainer">
+        <span>No</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dropdown: College -->
+  <div class="freebirdFormviewerComponentsQuestionBaseRoot" data-item-id="q7">
+    <div role="heading" class="freebirdFormviewerComponentsQuestionBaseTitle">
+      College Name *
+    </div>
+    <div role="listbox" class="quantumWizMenuPaperselectEl">
+      <div role="option" class="quantumWizMenuPaperselectOption"><span>Chandigarh Group of Colleges</span></div>
+      <div role="option" class="quantumWizMenuPaperselectOption"><span>Chandigarh University</span></div>
+      <div role="option" class="quantumWizMenuPaperselectOption"><span>PEC Chandigarh</span></div>
+    </div>
+  </div>
+
+  <!-- Text: 10th Percentage -->
+  <div class="freebirdFormviewerComponentsQuestionBaseRoot" data-item-id="q8">
+    <div role="heading" class="freebirdFormviewerComponentsQuestionBaseTitle">
+      10th Percentage *
+    </div>
+    <div class="freebirdFormviewerComponentsQuestionTextRoot">
+      <input type="text" class="quantumWizTextinputPaperinputInput" jsname="YPqjbf" />
+    </div>
+  </div>
+
+  <!-- Text: 12th Percentage -->
+  <div class="freebirdFormviewerComponentsQuestionBaseRoot" data-item-id="q9">
+    <div role="heading" class="freebirdFormviewerComponentsQuestionBaseTitle">
+      12th Percentage *
+    </div>
+    <div class="freebirdFormviewerComponentsQuestionTextRoot">
+      <input type="text" class="quantumWizTextinputPaperinputInput" jsname="YPqjbf" />
+    </div>
+  </div>
+
+  <!-- Text: Unrecognized field (should be skipped) -->
+  <div class="freebirdFormviewerComponentsQuestionBaseRoot" data-item-id="q10">
+    <div role="heading" class="freebirdFormviewerComponentsQuestionBaseTitle">
+      Why do you want to join this company? *
+    </div>
+    <div class="freebirdFormviewerComponentsQuestionTextRoot">
+      <textarea class="quantumWizTextinputPaperinputInput" jsname="YPqjbf"></textarea>
+    </div>
+  </div>
+
+  <!-- Text: CGPA -->
+  <div class="freebirdFormviewerComponentsQuestionBaseRoot" data-item-id="q11">
+    <div role="heading" class="freebirdFormviewerComponentsQuestionBaseTitle">
+      Current CGPA
+    </div>
+    <div class="freebirdFormviewerComponentsQuestionTextRoot">
+      <input type="text" class="quantumWizTextinputPaperinputInput" jsname="YPqjbf" />
+    </div>
+  </div>
+
+  <!-- Text: Branch -->
+  <div class="freebirdFormviewerComponentsQuestionBaseRoot" data-item-id="q12">
+    <div role="heading" class="freebirdFormviewerComponentsQuestionBaseTitle">
+      Branch / Department *
+    </div>
+    <div class="freebirdFormviewerComponentsQuestionTextRoot">
+      <input type="text" class="quantumWizTextinputPaperinputInput" jsname="YPqjbf" />
+    </div>
+  </div>
+
+</body>
+</html>

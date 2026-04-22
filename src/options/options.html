@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forma — Profile Settings</title>
+  <link rel="stylesheet" href="options.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="options-container">
+    <!-- Header -->
+    <header class="options-header">
+      <img src="../../assets/logo-forma-without-bg.png" alt="Forma" class="header-logo" />
+      <div class="header-text">
+        <h1 class="header-title">Forma</h1>
+        <p class="header-subtitle">Your placement profile — fill once, autofill everywhere.</p>
+      </div>
+    </header>
+
+    <main class="form-main">
+      <form id="profile-form" novalidate>
+
+        <!-- Section 1: Name -->
+        <section class="form-section">
+          <div class="section-header">
+            <h2 class="section-title">Name</h2>
+          </div>
+          <div class="fields-grid">
+            <div class="field-group">
+              <label for="name-first" class="field-label">First Name <span class="required">*</span></label>
+              <input type="text" id="name-first" class="field-input" placeholder="e.g. Bhuvan" required />
+              <span class="field-error" id="error-name-first"></span>
+            </div>
+            <div class="field-group">
+              <label for="name-middle" class="field-label">Middle Name</label>
+              <input type="text" id="name-middle" class="field-input" placeholder="Optional" />
+            </div>
+            <div class="field-group">
+              <label for="name-last" class="field-label">Last Name <span class="required">*</span></label>
+              <input type="text" id="name-last" class="field-input" placeholder="e.g. Bam" required />
+              <span class="field-error" id="error-name-last"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 2: Contact -->
+        <section class="form-section">
+          <div class="section-header">
+            <h2 class="section-title">Contact</h2>
+          </div>
+          <div class="fields-grid">
+            <div class="field-group">
+              <label for="email-personal" class="field-label">Personal Email <span class="required">*</span></label>
+              <input type="email" id="email-personal" class="field-input" placeholder="e.g. you@example.com" required />
+              <span class="field-error" id="error-email-personal"></span>
+            </div>
+            <div class="field-group">
+              <label for="email-college" class="field-label">College Email</label>
+              <input type="email" id="email-college" class="field-input" placeholder="e.g. you@cuchd.in" />
+            </div>
+            <div class="field-group">
+              <label for="email-alternate" class="field-label">Alternate Email</label>
+              <input type="email" id="email-alternate" class="field-input" placeholder="Optional" />
+            </div>
+            <div class="field-group">
+              <label for="phone-primary" class="field-label">Primary Phone <span class="required">*</span></label>
+              <div class="phone-input-row">
+                <select id="phone-country-code" class="field-input field-select phone-code">
+                  <option value="+91">🇮🇳 +91</option>
+                  <option value="+1">🇺🇸 +1</option>
+                  <option value="+44">🇬🇧 +44</option>
+                  <option value="+61">🇦🇺 +61</option>
+                  <option value="+971">🇦🇪 +971</option>
+                </select>
+                <input type="tel" id="phone-primary" class="field-input phone-number"
+                  placeholder="10-digit number (no 0 prefix)" maxlength="10" pattern="[1-9][0-9]{9}" required />
+              </div>
+              <span class="field-hint">Enter 10-digit number without leading 0 or country code</span>
+              <span class="field-error" id="error-phone-primary"></span>
+            </div>
+            <div class="field-group">
+              <label for="phone-alternate" class="field-label">Alternate Phone</label>
+              <input type="tel" id="phone-alternate" class="field-input" placeholder="10-digit number (optional)"
+                maxlength="10" />
+            </div>
+            <div class="field-group">
+              <label for="linkedin" class="field-label">LinkedIn URL</label>
+              <input type="url" id="linkedin" class="field-input" placeholder="e.g. https://linkedin.com/in/you" />
+            </div>
+            <div class="field-group">
+              <label for="github" class="field-label">GitHub URL</label>
+              <input type="url" id="github" class="field-input" placeholder="e.g. https://github.com/you" />
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 3: Personal -->
+        <section class="form-section">
+          <div class="section-header">
+            <h2 class="section-title">Personal</h2>
+          </div>
+          <div class="fields-grid">
+            <div class="field-group">
+              <label for="gender" class="field-label">Gender</label>
+              <select id="gender" class="field-input field-select">
+                <option value="">Select...</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="dob-display" class="field-label">Date of Birth</label>
+              <div class="dob-input-row">
+                <input type="text" id="dob-display" class="field-input dob-text" placeholder="DD/MM/YYYY"
+                  maxlength="10" />
+                <input type="date" id="dob" class="dob-hidden-picker" />
+                <button type="button" id="dob-calendar-btn" class="dob-calendar-btn" title="Pick from calendar">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
+                    fill="currentColor">
+                    <path
+                      d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-188.5-11.5Q280-423 280-440t11.5-28.5Q303-480 320-480t28.5 11.5Q360-457 360-440t-11.5 28.5Q337-400 320-400t-28.5-11.5ZM640-400q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-188.5-11.5Q280-263 280-280t11.5-28.5Q303-320 320-320t28.5 11.5Q360-297 360-280t-11.5 28.5Q337-240 320-240t-28.5-11.5ZM640-240q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z" />
+                  </svg>
+                </button>
+              </div>
+              <span class="field-hint">Format: DD/MM/YYYY</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 4: Academic -->
+        <section class="form-section">
+          <div class="section-header">
+            <h2 class="section-title">Academic</h2>
+          </div>
+          <div class="fields-grid">
+            <div class="field-group field-full">
+              <label for="college" class="field-label">College / University <span class="required">*</span></label>
+              <input type="text" id="college" class="field-input" placeholder="e.g. Chandigarh University" required />
+              <span class="field-error" id="error-college"></span>
+            </div>
+            <div class="field-group">
+              <label for="degree" class="field-label">Degree <span class="required">*</span></label>
+              <input type="text" id="degree" class="field-input" placeholder="e.g. B.Tech" required />
+              <span class="field-error" id="error-degree"></span>
+            </div>
+            <div class="field-group">
+              <label for="department" class="field-label">Department / Branch <span class="required">*</span></label>
+              <input type="text" id="department" class="field-input" placeholder="e.g. Computer Science" required />
+              <span class="field-error" id="error-department"></span>
+            </div>
+            <div class="field-group">
+              <label for="enrollment" class="field-label">Enrollment / Roll No. <span class="required">*</span></label>
+              <input type="text" id="enrollment" class="field-input" placeholder="e.g. 24BCS13345" required />
+              <span class="field-error" id="error-enrollment"></span>
+            </div>
+            <div class="field-group">
+              <label for="grad-year" class="field-label">Graduation Year <span class="required">*</span></label>
+              <input type="text" id="grad-year" class="field-input" placeholder="e.g. 2028" required />
+              <span class="field-error" id="error-grad-year"></span>
+            </div>
+            <div class="field-group">
+              <label for="cgpa" class="field-label">CGPA</label>
+              <input type="text" id="cgpa" class="field-input" placeholder="e.g. 8.5" />
+            </div>
+            <div class="field-group">
+              <label for="grad-percentage" class="field-label">Graduation %</label>
+              <input type="text" id="grad-percentage" class="field-input" placeholder="Optional" />
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 5: 10th Standard -->
+        <section class="form-section">
+          <div class="section-header">
+            <h2 class="section-title">10th Standard</h2>
+          </div>
+          <div class="fields-grid">
+            <div class="field-group">
+              <label for="tenth-board" class="field-label">Board <span class="required">*</span></label>
+              <input type="text" id="tenth-board" class="field-input" placeholder="e.g. CBSE" required />
+              <span class="field-error" id="error-tenth-board"></span>
+            </div>
+            <div class="field-group">
+              <label for="tenth-percentage" class="field-label">Percentage <span class="required">*</span></label>
+              <input type="text" id="tenth-percentage" class="field-input" placeholder="e.g. 92.5" required />
+              <span class="field-error" id="error-tenth-percentage"></span>
+            </div>
+            <div class="field-group">
+              <label for="tenth-year" class="field-label">Year of Passing <span class="required">*</span></label>
+              <input type="text" id="tenth-year" class="field-input" placeholder="e.g. 2020" required />
+              <span class="field-error" id="error-tenth-year"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 6: 12th Standard -->
+        <section class="form-section">
+          <div class="section-header">
+            <h2 class="section-title">12th Standard</h2>
+          </div>
+          <div class="fields-grid">
+            <div class="field-group">
+              <label for="twelfth-board" class="field-label">Board <span class="required">*</span></label>
+              <input type="text" id="twelfth-board" class="field-input" placeholder="e.g. CBSE" required />
+              <span class="field-error" id="error-twelfth-board"></span>
+            </div>
+            <div class="field-group">
+              <label for="twelfth-percentage" class="field-label">Percentage <span class="required">*</span></label>
+              <input type="text" id="twelfth-percentage" class="field-input" placeholder="e.g. 89.0" required />
+              <span class="field-error" id="error-twelfth-percentage"></span>
+            </div>
+            <div class="field-group">
+              <label for="twelfth-year" class="field-label">Year of Passing <span class="required">*</span></label>
+              <input type="text" id="twelfth-year" class="field-input" placeholder="e.g. 2022" required />
+              <span class="field-error" id="error-twelfth-year"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 7: Post Graduation (optional) -->
+        <section class="form-section">
+          <div class="section-header">
+            <h2 class="section-title">Post Graduation <span class="optional-badge">Optional</span></h2>
+          </div>
+          <div class="fields-grid">
+            <div class="field-group">
+              <label for="pg-degree" class="field-label">Degree</label>
+              <input type="text" id="pg-degree" class="field-input" placeholder="e.g. M.Tech" />
+            </div>
+            <div class="field-group">
+              <label for="pg-percentage" class="field-label">Percentage</label>
+              <input type="text" id="pg-percentage" class="field-input" placeholder="Optional" />
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 8: Placement -->
+        <section class="form-section">
+          <div class="section-header">
+            <h2 class="section-title">Placement Info</h2>
+          </div>
+          <div class="fields-grid">
+            <div class="field-group">
+              <label class="field-label">Active Backlog</label>
+              <div class="radio-group">
+                <label class="radio-option">
+                  <input type="radio" name="active-backlog" value="Yes" />
+                  <span class="radio-label">Yes</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="active-backlog" value="No" checked />
+                  <span class="radio-label">No</span>
+                </label>
+              </div>
+            </div>
+            <div class="field-group" id="backlog-count-group">
+              <label for="backlog-count" class="field-label">Number of Active Backlogs</label>
+              <input type="number" id="backlog-count" class="field-input" placeholder="0" min="0" />
+            </div>
+          </div>
+        </section>
+
+        <!-- Action Buttons -->
+        <div class="form-actions">
+          <button type="submit" id="btn-save" class="btn btn-primary">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+              <path fill-rule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clip-rule="evenodd" />
+            </svg>
+            Save Profile
+          </button>
+          <button type="button" id="btn-clear" class="btn btn-danger">
+            Clear All Data
+          </button>
+        </div>
+      </form>
+    </main>
+
+    <!-- Footer -->
+    <footer class="options-footer">
+      <div class="footer-content">
+        <span>Developed by Chahal Goyal</span>
+        <div class="footer-links">
+          <a href="https://github.com/chahalgoyal" target="_blank" rel="noopener noreferrer" title="GitHub">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z">
+              </path>
+            </svg>
+          </a>
+          <a href="https://www.linkedin.com/in/chahalgoyal/" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z">
+              </path>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+      <span id="toast-message"></span>
+    </div>
+  </div>
+
+  <script src="../../dist/options.js"></script>
+</body>
+
+</html>

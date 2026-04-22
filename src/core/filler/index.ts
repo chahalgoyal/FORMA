@@ -1,0 +1,156 @@
+// ──────────────────────────────────────────────
+// Forma — Filler Router (Intent-First)
+// Resolves profile values and routes to the
+// correct filler based on field type
+// ──────────────────────────────────────────────
+
+import type {
+  MatchResult,
+  FormaProfile,
+  FieldType,
+  FormaSettings,
+} from '../../types/index.js';
+import { getNestedValue, queryFirst } from '../../utils/helpers.js';
+import { computeFullName } from '../parser/nameParser.js';
+import { fillTextInput } from './textFiller.js';
+import { fillRadio } from './radioFiller.js';
+import { fillDropdown } from './dropdownFiller.js';
+import { DEFAULT_SETTINGS, SELECTORS } from '../../utils/constants.js';
+
+/**
+ * Resolves the actual string value to fill based on the
+ * match result and the user's profile.
+ *
+ * Handles computed fields (name.full), constraints (strip
+ * country code), and special logic (backlog count when
+ * activeBacklog is "No").
+ */
+export function resolveProfileValue(
+  matchResult: MatchResult,
+  profile: FormaProfile,
+  container?: Element
+): string {
+  const { profileKey, constraint } = matchResult;
+
+  switch (profileKey) {
+    // ── Computed: Full Name ──
+    case 'name.full':
+      return computeFullName(profile.name);
+
+    // ── Direct Name Parts ──
+    case 'name.first':
+      return profile.name.first;
+    case 'name.middle':
+      return profile.name.middle;
+    case 'name.last':
+      return profile.name.last;
+
+    // ── Phone: default 10-digit, append country code only if constrained ──
+    case 'contact.phone.primary': {
+      const rawPrimary = String(profile.contact.phone.primary || '');
+      if (constraint === 'use-country-code') {
+        return profile.contact.phone.countryCode + rawPrimary;
+      }
+      // Force sanitize: extract only digits, take the last 10
+      const digitsOnlyPrimary = rawPrimary.replace(/\D/g, '');
+      return digitsOnlyPrimary.slice(-10);
+    }
+
+    case 'contact.phone.alternate': {
+      const rawAlt = String(profile.contact.phone.alternate || '');
+      if (!rawAlt) return '';
+      if (constraint === 'use-country-code') {
+        return profile.contact.phone.countryCode + rawAlt;
+      }
+      // Force sanitize: extract only digits, take the last 10
+      const digitsOnlyAlt = rawAlt.replace(/\D/g, '');
+      return digitsOnlyAlt.slice(-10);
+    }
+
+    // ── Email with constraint override ──
+    case 'contact.email.personal':
+      return profile.contact.email.personal;
+    case 'contact.email.college':
+      return profile.contact.email.college;
+    case 'contact.email.alternate':
+      return profile.contact.email.alternate;
+
+    // ── Backlog count: returns "0" when no active backlog ──
+    case 'placement.backlogCount':
+      if (profile.placement.activeBacklog === 'No') return '0';
+      return profile.placement.backlogCount;
+
+    // ── DOB: handle native date input vs text input ──
+    case 'personal.dob': {
+      if (container) {
+        const input = queryFirst(SELECTORS.TEXT_INPUT, container) as HTMLInputElement | null;
+        if (input && input.type === 'date') {
+          return profile.personal.dob; // Native inputs require YYYY-MM-DD
+        }
+      }
+      return formatDob(profile.personal.dob); // Fallback text formatting DD/MM/YYYY
+    }
+
+    // ── All other fields: resolve via dot-notation path ──
+    default:
+      return getNestedValue(profile as unknown as Record<string, unknown>, profileKey) ?? '';
+  }
+}
+
+/**
+ * Reformats DOB from ISO YYYY-MM-DD to DD/MM/YYYY.
+ * This is the standard format used in Indian placement forms.
+ */
+function formatDob(isoDate: string): string {
+  if (!isoDate || !isoDate.includes('-')) return isoDate;
+
+  const [year, month, day] = isoDate.split('-');
+  return `${day}/${month}/${year}`;
+}
+
+/**
+ * Main filler function — intent-first approach.
+ *
+ * First resolves what value to fill (based on the matched
+ * profile key), then adapts the filling behavior to the
+ * field type (text, radio, dropdown).
+ *
+ * @param container   - The question container element
+ * @param fieldType   - Detected input type
+ * @param matchResult - The matching result with profile key
+ * @param profile     - The user's profile data
+ * @param settings    - Extension settings (for Fuse threshold)
+ * @returns true if filled successfully, false if skipped
+ */
+export async function fill(
+  container: Element,
+  fieldType: FieldType,
+  matchResult: MatchResult,
+  profile: FormaProfile,
+  settings: FormaSettings = DEFAULT_SETTINGS
+): Promise<boolean> {
+  const value = resolveProfileValue(matchResult, profile, container);
+
+  // Empty value = nothing to fill
+  if (!value) {
+    console.debug(
+      `[Forma] Profile key "${matchResult.profileKey}" resolved to empty value. Skipping.`
+    );
+    return false;
+  }
+
+  switch (fieldType) {
+    case 'text':
+      return fillTextInput(container, value);
+
+    case 'radio':
+      return fillRadio(container, value, settings.fuseThreshold);
+
+    case 'dropdown':
+      return fillDropdown(container, value, settings.fuseThreshold);
+
+    default:
+      console.warn(`[Forma] Unknown field type: ${fieldType}`);
+      return false;
+  }
+}

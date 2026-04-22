@@ -1,0 +1,20 @@
+{
+  "name": "forma-extension",
+  "version": "1.0.0",
+  "description": "Smart autofill for placement and internship Google Forms.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "fuse.js": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0"
+  }
+}

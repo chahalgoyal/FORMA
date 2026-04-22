@@ -1,0 +1,175 @@
+// ──────────────────────────────────────────────
+// Forma — Service Worker (Background Script)
+// MV3 event-driven background process
+// ──────────────────────────────────────────────
+
+import type { ProfileKeyPath } from '../types/index.js';
+import { saveLearnedMapping } from '../core/storage/storageManager.js';
+
+// Track pending learn candidates for notification responses
+const pendingLearnCandidates = new Map<
+  string,
+  { normalizedLabel: string; resolvedKey: ProfileKeyPath }
+>();
+
+// ──────────────────────────────────────────────
+// Message Handler
+// ──────────────────────────────────────────────
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  switch (message.type) {
+    // ── Popup → Service Worker → Content Script ──
+    case 'FORMA_FILL': {
+      // Get the active tab and send the fill command to its content script
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tab = tabs[0];
+        if (!tab?.id) {
+          sendResponse({
+            type: 'FORMA_RESULT',
+            payload: {
+              filledCount: 0,
+              skippedCount: 0,
+              filledLabels: [],
+              skippedLabels: [],
+            },
+          });
+          return;
+        }
+
+        chrome.tabs.sendMessage(
+          tab.id,
+          { type: 'FORMA_FILL' },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              console.error(
+                '[Forma SW] Error sending fill command:',
+                chrome.runtime.lastError.message
+              );
+              sendResponse({
+                type: 'FORMA_RESULT',
+                payload: {
+                  filledCount: 0,
+                  skippedCount: 0,
+                  filledLabels: [],
+                  skippedLabels: [],
+                  error: 'Could not reach the form page. Make sure you are on a Google Form.',
+                },
+              });
+              return;
+            }
+
+            // Relay the content script's response back to the popup
+            sendResponse(response);
+          }
+        );
+      });
+
+      // Async response
+      return true;
+    }
+
+    // ── Popup → Service Worker → Content Script: Clear Highlights ──
+    case 'FORMA_CLEAR_HIGHLIGHTS': {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tab = tabs[0];
+        if (!tab?.id) {
+          sendResponse({ success: false });
+          return;
+        }
+
+        chrome.tabs.sendMessage(
+          tab.id,
+          { type: 'FORMA_CLEAR_HIGHLIGHTS' },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              console.error(
+                '[Forma SW] Error clearing highlights:',
+                chrome.runtime.lastError.message
+              );
+            }
+            sendResponse(response ?? { success: false });
+          }
+        );
+      });
+
+      return true;
+    }
+
+    // ── Content Script → Service Worker: Learn Candidate ──
+    case 'FORMA_LEARN_CANDIDATE': {
+      const { normalizedLabel, rawLabel, resolvedKey } = message.payload as {
+        normalizedLabel: string;
+        rawLabel: string;
+        enteredValue: string;
+        resolvedKey: ProfileKeyPath;
+      };
+
+      // Create a notification to ask the user
+      const notificationId = `forma-learn-${Date.now()}`;
+
+      pendingLearnCandidates.set(notificationId, {
+        normalizedLabel,
+        resolvedKey,
+      });
+
+      chrome.notifications.create(notificationId, {
+        type: 'basic',
+        iconUrl: 'assets/icon128.png',
+        title: 'Forma — Save Mapping?',
+        message: `Save "${rawLabel}" → ${resolvedKey} for future forms?`,
+        buttons: [{ title: 'Yes, Save' }, { title: 'Dismiss' }],
+        requireInteraction: true,
+      });
+
+      sendResponse({ received: true });
+      return false;
+    }
+
+    // ── Content Script → Service Worker: Auto-fill Result ──
+    case 'FORMA_RESULT': {
+      // This comes from the auto-fill-on-load path
+      // Just log it for now
+      console.debug('[Forma SW] Auto-fill result received:', message.payload);
+      return false;
+    }
+
+    default:
+      return false;
+  }
+});
+
+// ──────────────────────────────────────────────
+// Notification Button Handler
+// ──────────────────────────────────────────────
+
+chrome.notifications.onButtonClicked.addListener(
+  async (notificationId, buttonIndex) => {
+    const candidate = pendingLearnCandidates.get(notificationId);
+    if (!candidate) return;
+
+    if (buttonIndex === 0) {
+      // "Yes, Save" — persist the learned mapping
+      await saveLearnedMapping({
+        normalizedLabel: candidate.normalizedLabel,
+        profileKey: candidate.resolvedKey,
+        savedAt: Date.now(),
+      });
+
+      console.debug(
+        `[Forma SW] Learned mapping saved: "${candidate.normalizedLabel}" → "${candidate.resolvedKey}"`
+      );
+    }
+
+    // Clean up
+    pendingLearnCandidates.delete(notificationId);
+    chrome.notifications.clear(notificationId);
+  }
+);
+
+// Also handle notification click (dismiss)
+chrome.notifications.onClicked.addListener((notificationId) => {
+  pendingLearnCandidates.delete(notificationId);
+  chrome.notifications.clear(notificationId);
+});
+
+console.debug('[Forma SW] Service worker loaded.');
