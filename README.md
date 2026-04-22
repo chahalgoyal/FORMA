@@ -44,13 +44,28 @@ Forma uses a sophisticated matching pipeline:
 
 ---
 
-## 🛠️ Technical Setup
+---
+
+## 📥 Quick Install (For Users)
+
+If you just want to use Forma, you don't need to touch any code or use the command line:
+1. **Download the Extension:** Once live, find us on the [Chrome Web Store](https://chrome.google.com/webstore).
+2. **One-Click Install:** Click "Add to Chrome."
+3. **Pin it:** Click the puzzle icon in your browser and pin Forma for easy access.
+4. **Fill your Profile:** Open the extension, click "Edit Profile," and you're ready to autofill!
+
+---
+
+## 🛠️ Developer Setup (For Contributors)
+
+> [!NOTE]
+> These steps are **only** for people who want to modify the source code or build the extension from scratch. Regular users can skip this!
 
 ### Prerequisites
 - Node.js (v18+)
 - Chrome Browser
 
-### Build & Install
+### Build from Source
 1. Clone the repository.
 2. Install dependencies:
    ```bash
