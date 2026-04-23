@@ -5,6 +5,7 @@
 
 ### A privacy-first, intent-aware autofill assistant for students.
 
+[![Version](https://img.shields.io/badge/Version-1.0.1-blue?style=for-the-badge)](https://github.com/chahalgoyal/FORMA/releases/latest)
 [![Download ZIP](https://img.shields.io/badge/Download-ZIP%20Release-blueviolet?style=for-the-badge&logo=archive)](https://github.com/chahalgoyal/FORMA/releases/latest)
 [![Manifest V3](https://img.shields.io/badge/Chrome-MV3-orange?style=for-the-badge&logo=google-chrome)](https://developer.chrome.com/docs/extensions/mv3)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
@@ -47,6 +48,7 @@ Forma moves away from sterile, boxy AI designs. The popup and options pages use 
 - ✅ **Visual Feedback:** 5px side-line indicators and subtle ghost-tint backgrounds.
 - ✅ **Real-time Status:** Shows exactly how many fields were filled vs. skipped.
 - ✅ **Highlight Clearing:** One-click removal of all visual highlights.
+- ✅ **Flexible Profile:** No mandatory fields — fill only what you need, save anytime.
 
 ### 🔒 Privacy & Performance
 - ✅ **Local-Only Storage:** All profile data stays on your machine (`chrome.storage.local`).
@@ -144,6 +146,22 @@ npm install
 npm run build
 ```
 Load into Chrome: Go to `chrome://extensions/` → Enable **Developer mode** → **Load unpacked** → Select the `dist` folder.
+
+---
+
+## 📋 Changelog
+
+### v1.0.1 — User Feedback Release
+- **No mandatory fields** — All profile fields are now optional. Fill only what you need, save anytime. Empty fields are gracefully skipped during autofill.
+- **Soft validation** — Phone number format is validated only when you actually enter a phone number.
+- **Housekeeping** — Build artifacts (`.zip`) removed from version control.
+
+### v1.0.0 — Initial Release
+- Three-layer matching engine (Keyword → Fuzzy → Structural)
+- Adaptive learning from user corrections
+- Constraint-aware filling (phone formats, email types)
+- Cozy Organic theme with warm, earthy palette
+- Privacy-first, local-only storage
 
 ---
 

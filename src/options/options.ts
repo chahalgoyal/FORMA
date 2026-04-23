@@ -17,16 +17,16 @@ interface FieldMapping {
 
 const FIELD_MAPPINGS: FieldMapping[] = [
   // Name
-  { id: 'name-first', path: ['name', 'first'], required: true },
+  { id: 'name-first', path: ['name', 'first'], required: false },
   { id: 'name-middle', path: ['name', 'middle'], required: false },
-  { id: 'name-last', path: ['name', 'last'], required: true },
+  { id: 'name-last', path: ['name', 'last'], required: false },
 
   // Contact
-  { id: 'email-personal', path: ['contact', 'email', 'personal'], required: true },
+  { id: 'email-personal', path: ['contact', 'email', 'personal'], required: false },
   { id: 'email-college', path: ['contact', 'email', 'college'], required: false },
   { id: 'email-alternate', path: ['contact', 'email', 'alternate'], required: false },
   { id: 'phone-country-code', path: ['contact', 'phone', 'countryCode'], required: false },
-  { id: 'phone-primary', path: ['contact', 'phone', 'primary'], required: true },
+  { id: 'phone-primary', path: ['contact', 'phone', 'primary'], required: false },
   { id: 'phone-alternate', path: ['contact', 'phone', 'alternate'], required: false },
   { id: 'linkedin', path: ['contact', 'linkedin'], required: false },
   { id: 'github', path: ['contact', 'github'], required: false },
@@ -36,23 +36,23 @@ const FIELD_MAPPINGS: FieldMapping[] = [
   // DOB is handled manually (dob-display ↔ dob hidden picker)
 
   // Academic
-  { id: 'college', path: ['academic', 'college'], required: true },
-  { id: 'degree', path: ['academic', 'degree'], required: true },
-  { id: 'department', path: ['academic', 'department'], required: true },
-  { id: 'enrollment', path: ['academic', 'enrollment'], required: true },
-  { id: 'grad-year', path: ['academic', 'gradYear'], required: true },
+  { id: 'college', path: ['academic', 'college'], required: false },
+  { id: 'degree', path: ['academic', 'degree'], required: false },
+  { id: 'department', path: ['academic', 'department'], required: false },
+  { id: 'enrollment', path: ['academic', 'enrollment'], required: false },
+  { id: 'grad-year', path: ['academic', 'gradYear'], required: false },
   { id: 'cgpa', path: ['academic', 'cgpa'], required: false },
   { id: 'grad-percentage', path: ['academic', 'graduationPercentage'], required: false },
 
   // 10th
-  { id: 'tenth-board', path: ['academic', 'tenth', 'board'], required: true },
-  { id: 'tenth-percentage', path: ['academic', 'tenth', 'percentage'], required: true },
-  { id: 'tenth-year', path: ['academic', 'tenth', 'passingYear'], required: true },
+  { id: 'tenth-board', path: ['academic', 'tenth', 'board'], required: false },
+  { id: 'tenth-percentage', path: ['academic', 'tenth', 'percentage'], required: false },
+  { id: 'tenth-year', path: ['academic', 'tenth', 'passingYear'], required: false },
 
   // 12th
-  { id: 'twelfth-board', path: ['academic', 'twelfth', 'board'], required: true },
-  { id: 'twelfth-percentage', path: ['academic', 'twelfth', 'percentage'], required: true },
-  { id: 'twelfth-year', path: ['academic', 'twelfth', 'passingYear'], required: true },
+  { id: 'twelfth-board', path: ['academic', 'twelfth', 'board'], required: false },
+  { id: 'twelfth-percentage', path: ['academic', 'twelfth', 'percentage'], required: false },
+  { id: 'twelfth-year', path: ['academic', 'twelfth', 'passingYear'], required: false },
 
   // PG
   { id: 'pg-degree', path: ['academic', 'pg', 'degree'], required: false },
@@ -174,6 +174,8 @@ async function loadProfile(): Promise<void> {
 }
 
 // ─── Validate ────────────────────────────────
+// Soft validation only — no fields are mandatory.
+// We only check format constraints when data IS provided.
 
 function validate(): boolean {
   let isValid = true;
@@ -186,23 +188,7 @@ function validate(): boolean {
     el.classList.remove('error');
   });
 
-  // Check required fields
-  for (const mapping of FIELD_MAPPINGS) {
-    if (!mapping.required) continue;
-
-    const value = getInputValue(mapping.id);
-    if (!value) {
-      const input = document.getElementById(mapping.id);
-      const errorEl = document.getElementById(`error-${mapping.id}`);
-
-      if (input) input.classList.add('error');
-      if (errorEl) errorEl.textContent = 'This field is required';
-
-      isValid = false;
-    }
-  }
-
-  // Validate phone: must be 10 digits, no leading 0
+  // Soft-validate phone format (only if user entered something)
   const phone = getInputValue('phone-primary');
   if (phone && (phone.length !== 10 || phone.startsWith('0') || !/^\d+$/.test(phone))) {
     const input = document.getElementById('phone-primary');
@@ -221,7 +207,7 @@ async function handleSave(e: Event): Promise<void> {
   e.preventDefault();
 
   if (!validate()) {
-    showToast('Please fill all required fields.', 'error');
+    showToast('Please fix the highlighted errors.', 'error');
 
     // Scroll to first error
     const firstError = document.querySelector('.field-input.error');
