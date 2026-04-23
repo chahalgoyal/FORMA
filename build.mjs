@@ -49,13 +49,15 @@ copyAndFix('manifest.json', 'dist/manifest.json', [
 
 // 2. Popup HTML — fix logo and script paths
 copyAndFix('src/popup/popup.html', 'dist/popup.html', [
-  ['../../assets/logo-forma-without-bg.png', 'assets/logo-forma-without-bg.png'],
+  ['../../assets/logo-light.png', 'assets/logo-light.png'],
+  ['../../assets/logo-dark.png', 'assets/logo-dark.png'],
   ['../../dist/popup.js', 'popup.js'],
 ]);
 
 // 3. Options HTML — fix logo and script paths
 copyAndFix('src/options/options.html', 'dist/options.html', [
-  ['../../assets/logo-forma-without-bg.png', 'assets/logo-forma-without-bg.png'],
+  ['../../assets/logo-light.png', 'assets/logo-light.png'],
+  ['../../assets/logo-dark.png', 'assets/logo-dark.png'],
   ['../../dist/options.js', 'options.js'],
 ]);
 
@@ -63,8 +65,8 @@ copyAndFix('src/options/options.html', 'dist/options.html', [
 fs.copyFileSync('src/popup/popup.css', 'dist/popup.css');
 fs.copyFileSync('src/options/options.css', 'dist/options.css');
 
-// 5. Logo assets — only copy the ones the extension actually uses
-const logoFiles = ['logo-forma.png', 'logo-forma-without-bg.png'];
+// 5. Logo assets — copy all logos used by the extension
+const logoFiles = ['logo-light.png', 'logo-dark.png', 'icon128.png'];
 for (const file of logoFiles) {
   const src = path.join('assets', file);
   if (fs.existsSync(src)) {

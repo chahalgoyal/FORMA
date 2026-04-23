@@ -5,17 +5,46 @@
 
 import type { MatchResult, LearnedMapping, FormaSettings } from '../../types/index.js';
 import { DEFAULT_SETTINGS } from '../../utils/constants.js';
+import { normalizeLabel } from '../../utils/helpers.js';
 import { keywordMatch } from './keywordMatcher.js';
 import { fuzzyMatch } from './fuzzyMatcher.js';
 
 /**
- * Main matching function. Runs all layers in sequence:
- *
- * Layer 0: Learned mappings (exact label match, highest priority)
- * Layer 1: Strict Bag of Words matching against static mappings
- * Layer 2: Fuzzy matching via Fuse.js (using BoW)
- *
- * Returns the first confident match, or null if no match is found.
+ * Runs the full matching pipeline on a single (non-slashed) label.
+ * Used internally by the main match() and by slash-split matching.
+ */
+function matchSingle(
+  normalizedLabel: string,
+  rawLabel: string,
+  learnedMappings: LearnedMapping[],
+  settings: FormaSettings
+): MatchResult | null {
+  // ── Layer 0: Learned Mappings ──
+  const learned = learnedMappings.find(
+    (m) => m.normalizedLabel === normalizedLabel
+  );
+  if (learned) {
+    return {
+      profileKey: learned.profileKey,
+      score: 0,
+      source: 'learned',
+    };
+  }
+
+  // ── Layer 1: Strict Bag of Words Matching ──
+  const keywordResult = keywordMatch(normalizedLabel, rawLabel);
+  if (keywordResult) return keywordResult;
+
+  // ── Layer 2: Fuzzy Matching ──
+  const fuzzyResult = fuzzyMatch(normalizedLabel, rawLabel, settings.fuseThreshold);
+  if (fuzzyResult) return fuzzyResult;
+
+  return null;
+}
+
+/**
+ * Main matching function. Handles slash-split labels, then runs
+ * the standard layer pipeline.
  *
  * @param normalizedLabel  - Cleaned label text
  * @param rawLabel         - Original label text (for constraint parsing)
@@ -28,42 +57,58 @@ export function match(
   learnedMappings: LearnedMapping[] = [],
   settings: FormaSettings = DEFAULT_SETTINGS
 ): MatchResult | null {
-  // ── Layer 0: Learned Mappings ──
-  // Exact match on normalized label. Highest priority.
-  const learned = learnedMappings.find(
-    (m) => m.normalizedLabel === normalizedLabel
-  );
 
-  if (learned) {
+  // ── Pre-check: Slash-split labels ──
+  // If label contains "/", split into parts and match each.
+  // Fill only if ALL parts resolve to the SAME profile key.
+  // More than 2 slashes → too noisy, skip immediately.
+  if (rawLabel.includes('/')) {
+    const parts = rawLabel.split('/').map(p => p.trim()).filter(p => p.length > 0);
+
+    // More than 3 parts or less than 2 → skip (too complex or malformed)
+    if (parts.length < 2 || parts.length > 3) {
+      console.debug(`[Forma] "${rawLabel}" → slash-split: ${parts.length} parts, skipping`);
+      return null;
+    }
+
+    // Match each part independently
+    const keys: (string | null)[] = parts.map(part => {
+      const norm = normalizeLabel(part);
+      const result = matchSingle(norm, part, learnedMappings, settings);
+      return result?.profileKey ?? null;
+    });
+
+    // All parts must resolve to the same non-null key
+    const firstKey = keys[0];
+    if (firstKey && keys.every(k => k === firstKey)) {
+      console.debug(
+        `[Forma] "${rawLabel}" → slash-split: all parts → "${firstKey}"`
+      );
+      // Return using the first part's full match result
+      const norm = normalizeLabel(parts[0]);
+      return matchSingle(norm, parts[0], learnedMappings, settings);
+    }
+
     console.debug(
-      `[Forma] "${rawLabel}" → learned mapping → "${learned.profileKey}"`
+      `[Forma] "${rawLabel}" → slash-split: keys disagree [${keys.join(', ')}], skipping`
     );
-    return {
-      profileKey: learned.profileKey,
-      score: 0,
-      source: 'learned',
-    };
+    return null;
   }
 
-  // ── Layer 1: Strict Bag of Words Matching ──
-  const keywordResult = keywordMatch(normalizedLabel, rawLabel);
-  if (keywordResult) {
+  // ── Standard pipeline (no slash) ──
+  const result = matchSingle(normalizedLabel, rawLabel, learnedMappings, settings);
+
+  if (result) {
+    const sourceLabel = result.source === 'learned' ? 'learned mapping' :
+                        result.source === 'keyword' ? 'keyword match' :
+                        `fuzzy match`;
+    const scoreInfo = result.source === 'fuzzy' ? ` (score: ${result.score.toFixed(3)})` : ' (score: 0)';
     console.debug(
-      `[Forma] "${rawLabel}" → keyword match → "${keywordResult.profileKey}" (score: 0)`
+      `[Forma] "${rawLabel}" → ${sourceLabel} → "${result.profileKey}"${scoreInfo}`
     );
-    return keywordResult;
+  } else {
+    console.debug(`[Forma] "${rawLabel}" → no match found`);
   }
 
-  // ── Layer 2: Fuzzy Matching ──
-  const fuzzyResult = fuzzyMatch(normalizedLabel, rawLabel, settings.fuseThreshold);
-  if (fuzzyResult) {
-    console.debug(
-      `[Forma] "${rawLabel}" → fuzzy match → "${fuzzyResult.profileKey}" (score: ${fuzzyResult.score.toFixed(3)})`
-    );
-    return fuzzyResult;
-  }
-
-  // ── No Match ──
-  console.debug(`[Forma] "${rawLabel}" → no match found`);
-  return null;
+  return result;
 }

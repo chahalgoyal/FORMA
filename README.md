@@ -5,7 +5,7 @@
 
 ### A privacy-first, intent-aware autofill assistant for students.
 
-[![Version](https://img.shields.io/badge/Version-1.0.1-blue?style=for-the-badge)](https://github.com/chahalgoyal/FORMA/releases/latest)
+[![Version](https://img.shields.io/badge/Version-1.1.0-blue?style=for-the-badge)](https://github.com/chahalgoyal/FORMA/releases/latest)
 [![Download ZIP](https://img.shields.io/badge/Download-ZIP%20Release-blueviolet?style=for-the-badge&logo=archive)](https://github.com/chahalgoyal/FORMA/releases/latest)
 [![Manifest V3](https://img.shields.io/badge/Chrome-MV3-orange?style=for-the-badge&logo=google-chrome)](https://developer.chrome.com/docs/extensions/mv3)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
@@ -111,26 +111,16 @@ If you aren't a developer, the easiest way to use Forma is via the ZIP release:
 ## 📖 How to Use
 
 ### 1. Setup your Profile
-When you first install Forma, click **Edit Profile** in the popup to get started.
-
-![Setup Profile](./assets/zero.png)
+When you first install Forma, click **Edit Profile** in the extension popup to get started. You'll be taken to a dedicated Profile Studio page.
 
 ### 2. Fill & Save Details
-Enter your academic and personal details in the "Cozy Organic" editor and click **Save Profile**.
-
-![Fill Details](./assets/first.png)
-
-![Save Changes](./assets/second.png)
+Enter your academic and personal details in the "Cozy Organic" editor. There are no mandatory fields—fill out as much or as little as you want, and click **Save Profile** when you're done.
 
 ### 3. Autofill Anywhere
-Open any Google Form and click **Autofill This Form**. You can also enable **Autofill on page load** for a zero-click experience.
-
-![Autofill](./assets/third.png)
+Open any Google Form (like a placement or internship application) and click the **Autofill This Form** button in the Forma popup. You can also enable **Autofill on page load** using the toggle for a complete zero-click experience.
 
 ### 4. Review & Clear
-Forma will highlight filled fields in Sage Green. Review the counts in the results panel and clear highlights when done.
-
-![Results](./assets/fourth.png)
+Forma will intelligently match and fill the form fields, highlighting them in a soft Sage Green so you can easily review what was changed. The popup will show you exactly how many fields were successfully filled or skipped. Once you've reviewed the form, you can clear the highlights with one click.
 
 ---
 
@@ -150,6 +140,12 @@ Load into Chrome: Go to `chrome://extensions/` → Enable **Developer mode** →
 ---
 
 ## 📋 Changelog
+
+### v1.1.0 — UI Polish & Precision Updates
+- **Visual Overhaul:** Refined the "Cozy Organic" UI to perfectly align the new branding and typography without layout distortions.
+- **Improved Iconography:** Cleaned up transparent padding on the extension icon to ensure perfect visibility in the Chrome toolbar.
+- **Enhanced Matcher Logic:** Polished handling of ambiguous slash-separated fields.
+- **Automated Bundling:** Streamlined the build pipeline for faster developer iterations and pristine ZIP output.
 
 ### v1.0.1 — User Feedback Release
 - **No mandatory fields** — All profile fields are now optional. Fill only what you need, save anytime. Empty fields are gracefully skipped during autofill.

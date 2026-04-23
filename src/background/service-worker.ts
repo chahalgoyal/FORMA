@@ -41,20 +41,65 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           { type: 'FORMA_FILL' },
           (response) => {
             if (chrome.runtime.lastError) {
-              console.error(
-                '[Forma SW] Error sending fill command:',
+              console.warn(
+                '[Forma SW] Content script not reachable, injecting programmatically...',
                 chrome.runtime.lastError.message
               );
-              sendResponse({
-                type: 'FORMA_RESULT',
-                payload: {
-                  filledCount: 0,
-                  skippedCount: 0,
-                  filledLabels: [],
-                  skippedLabels: [],
-                  error: 'Could not reach the form page. Make sure you are on a Google Form.',
+
+              // Programmatically inject the content script and retry
+              chrome.scripting.executeScript(
+                {
+                  target: { tabId: tab.id! },
+                  files: ['dist/content.js'],
                 },
-              });
+                () => {
+                  if (chrome.runtime.lastError) {
+                    console.error(
+                      '[Forma SW] Script injection failed:',
+                      chrome.runtime.lastError.message
+                    );
+                    sendResponse({
+                      type: 'FORMA_RESULT',
+                      payload: {
+                        filledCount: 0,
+                        skippedCount: 0,
+                        filledLabels: [],
+                        skippedLabels: [],
+                        error: 'Could not reach the form page. Make sure you are on a Google Form.',
+                      },
+                    });
+                    return;
+                  }
+
+                  // Wait a moment for the content script to initialize
+                  setTimeout(() => {
+                    chrome.tabs.sendMessage(
+                      tab.id!,
+                      { type: 'FORMA_FILL' },
+                      (retryResponse) => {
+                        if (chrome.runtime.lastError) {
+                          console.error(
+                            '[Forma SW] Retry failed:',
+                            chrome.runtime.lastError.message
+                          );
+                          sendResponse({
+                            type: 'FORMA_RESULT',
+                            payload: {
+                              filledCount: 0,
+                              skippedCount: 0,
+                              filledLabels: [],
+                              skippedLabels: [],
+                              error: 'Could not reach the form page. Please refresh and try again.',
+                            },
+                          });
+                          return;
+                        }
+                        sendResponse(retryResponse);
+                      }
+                    );
+                  }, 300);
+                }
+              );
               return;
             }
 

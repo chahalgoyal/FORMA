@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Forma",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Smart autofill for placement and internship Google Forms.",
   "icons": {
-    "16": "assets/logo-forma.png",
-    "48": "assets/logo-forma.png",
-    "128": "assets/logo-forma.png"
+    "16": "assets/icon128.png",
+    "48": "assets/icon128.png",
+    "128": "assets/icon128.png"
   },
   "action": {
     "default_popup": "src/popup/popup.html",

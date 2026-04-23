@@ -25,10 +25,23 @@ import type { MatchResult } from '../../types/index.js';
  * @param rawLabel        - Original label text
  * @returns MatchResult with source "structural", or null
  */
+// ── Poison words: if label contains any of these, it's someone else's data ──
+const POISON_WORDS = [
+  'father', 'mother', 'guardian', 'parent', 'spouse',
+  'emergency', 'manager', 'referral', 'hr', 'supervisor',
+  'company', 'organization', 'employer', 'team', 'event',
+  'project', 'mentor', 'friend', 'sibling',
+];
+
 export function structuralMatch(
   normalizedLabel: string,
   _rawLabel: string
 ): MatchResult | null {
+  // ── Poison word guard ──
+  // If the label references someone else's data, bail out immediately.
+  for (const word of POISON_WORDS) {
+    if (normalizedLabel.includes(word)) return null;
+  }
   // ── Case 1: Split Name Fields (fallback) ──
   if (
     normalizedLabel.includes('first') &&

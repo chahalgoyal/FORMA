@@ -203,6 +203,15 @@ export const STATIC_MAPPINGS: StaticMapping[] = [
     key: 'contact.github',
     patterns: ['github', 'github url', 'github profile', 'github id'],
   },
+  {
+    key: 'contact.resumeLink',
+    patterns: [
+      'resume link', 'cv link', 'resume url', 'cv url',
+      'resume drive link', 'cv drive link',
+      'resume google drive link', 'cv google drive link',
+      'link resume', 'link cv',
+    ],
+  },
 
   // ── Personal ───────────────────────────────
   {

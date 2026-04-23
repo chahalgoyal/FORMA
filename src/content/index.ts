@@ -190,10 +190,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         const result = await runAutofill();
 
         // Send result to service worker (which may relay to popup)
-        chrome.runtime.sendMessage({
-          type: 'FORMA_RESULT',
-          payload: result,
-        });
+        try {
+          chrome.runtime.sendMessage({
+            type: 'FORMA_RESULT',
+            payload: result,
+          });
+        } catch {
+          // Extension context invalidated — silently ignore
+        }
       }, settings.autoFillDelay);
     }
   } catch (error) {

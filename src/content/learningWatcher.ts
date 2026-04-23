@@ -103,13 +103,17 @@ export function attachLearningListeners(
         `[Forma] Learn candidate: "${field.normalizedLabel}" → "${bestMatch.key}" (value: "${newValue}")`
       );
 
-      chrome.runtime.sendMessage({
-        type: 'FORMA_LEARN_CANDIDATE',
-        payload: {
-          ...payload,
-          resolvedKey: bestMatch.key,
-        },
-      });
+      try {
+        chrome.runtime.sendMessage({
+          type: 'FORMA_LEARN_CANDIDATE',
+          payload: {
+            ...payload,
+            resolvedKey: bestMatch.key,
+          },
+        });
+      } catch {
+        // Extension was reloaded — context invalidated. Silently ignore.
+      }
     };
 
     // Listen for blur and change events

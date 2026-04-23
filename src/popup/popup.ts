@@ -18,7 +18,9 @@ const skippedCount = document.getElementById('skipped-count')!;
 const btnClear = document.getElementById('btn-clear') as HTMLButtonElement;
 const notOnForm = document.getElementById('not-on-form')!;
 const toggleAutofill = document.getElementById('toggle-autofill') as HTMLInputElement;
+const toggleTheme = document.getElementById('toggle-theme') as HTMLInputElement;
 const btnOptions = document.getElementById('btn-options') as HTMLAnchorElement;
+const popupLogo = document.getElementById('popup-logo') as HTMLImageElement;
 
 // ─── State ───────────────────────────────────
 
@@ -62,6 +64,13 @@ async function initialize(): Promise<void> {
   // Load settings
   const settings = await getSettings();
   toggleAutofill.checked = settings.autoFillOnLoad;
+
+  // Load theme
+  const themeResult = await chrome.storage.local.get('formaTheme');
+  const theme = themeResult.formaTheme || 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  toggleTheme.checked = theme === 'dark';
+  updateLogo(theme);
 }
 
 // ─── Event Handlers ─────────────────────────
@@ -134,7 +143,21 @@ btnOptions.addEventListener('click', (e) => {
   chrome.runtime.openOptionsPage();
 });
 
+// Dark mode toggle
+toggleTheme.addEventListener('change', async () => {
+  const theme = toggleTheme.checked ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  updateLogo(theme);
+  await chrome.storage.local.set({ formaTheme: theme });
+});
+
 // ─── Helpers ─────────────────────────────────
+
+function updateLogo(theme: string): void {
+  popupLogo.src = theme === 'dark'
+    ? chrome.runtime.getURL('assets/logo-dark.png')
+    : chrome.runtime.getURL('assets/logo-light.png');
+}
 
 function showResults(result: FormaResultPayload): void {
   filledCount.textContent = String(result.filledCount);

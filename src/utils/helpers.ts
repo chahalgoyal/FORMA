@@ -141,16 +141,22 @@ export function simulateClick(element: HTMLElement): void {
 // ─── Bag of Words Matching Utilities ─────────
 
 const STOP_WORDS = new Set([
-  'what', 'is', 'your', 'please', 'enter', 'provide', 'type',
-  'the', 'of', 'in', 'detail', 'student', 'candidate', 'applicant',
-  'participant', 'a', 'an', 'for', 'to', 'and', 'or', 'any', 'details',
+  // Pronouns & articles
+  'what', 'is', 'your', 'the', 'of', 'in', 'a', 'an',
+  'for', 'to', 'and', 'or', 'any',
+  // Instruction verbs (common form preambles)
+  'please', 'enter', 'provide', 'type', 'mention', 'share', 'paste',
+  // Form subject words (the user IS the student/candidate)
+  'student', 'candidate', 'applicant', 'participant',
+  // Noise qualifiers
+  'detail', 'details', 'below', 'here', 'only', 'good',
 ]);
 
 /**
  * Prepares a string for Bag-of-Words strict matching.
  * 1. Lowercase and remove all punctuation (replaces with space).
  * 2. Split into individual words.
- * 3. Filter out stop words and empty tokens.
+ * 3. Filter out stop words, single-char tokens, and empty tokens.
  * 4. Sort alphabetically to create a predictable "bag".
  */
 export function tokenizeAndClean(text: string): string[] {
@@ -160,7 +166,7 @@ export function tokenizeAndClean(text: string): string[] {
   const tokens = cleaned.split(/\s+/);
   
   const validTokens = tokens.filter(
-    (token) => token.length > 0 && !STOP_WORDS.has(token)
+    (token) => token.length > 1 && !STOP_WORDS.has(token)
   );
 
   // Sort alphabetically so array equality works

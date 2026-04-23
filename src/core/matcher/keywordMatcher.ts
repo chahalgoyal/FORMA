@@ -19,10 +19,25 @@ import { tokenizeAndClean } from '../../utils/helpers.js';
  * @param rawLabel        - The original label text (for constraint parsing)
  * @returns MatchResult with score 0 and source "keyword", or null
  */
+// ── Poison words: labels referencing someone else's data ──
+const POISON_WORDS = [
+  'father', 'mother', 'guardian', 'parent', 'spouse',
+  'emergency', 'manager', 'referral', 'hr', 'supervisor',
+  'company', 'organization', 'employer', 'team', 'event',
+  'project', 'mentor', 'friend', 'sibling',
+];
+
 export function keywordMatch(
   normalizedLabel: string,
   rawLabel: string
 ): MatchResult | null {
+  // ── Poison word guard ──
+  // Check the ORIGINAL normalized label (before tokenization)
+  // so possessives like "father's" are caught.
+  for (const word of POISON_WORDS) {
+    if (normalizedLabel.includes(word)) return null;
+  }
+
   const labelTokens = tokenizeAndClean(normalizedLabel);
   const labelBoW = labelTokens.join(' ');
 

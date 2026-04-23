@@ -23,6 +23,7 @@ export interface FormaProfile {
     };
     linkedin: string;
     github: string;
+    resumeLink: string;
   };
   personal: {
     gender: 'Male' | 'Female' | 'Other' | '';
@@ -162,6 +163,7 @@ export type ProfileKeyPath =
   | 'contact.phone.alternate'
   | 'contact.linkedin'
   | 'contact.github'
+  | 'contact.resumeLink'
   | 'personal.gender'
   | 'personal.dob'
   | 'academic.college'
