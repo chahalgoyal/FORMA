@@ -3,9 +3,9 @@
 
 # FORMA
 
-### A privacy-first, intent-aware autofill assistant for students.
+### A privacy-first, platform-independent autofill assistant for students.
 
-[![Version](https://img.shields.io/badge/Version-1.1.0-blue?style=for-the-badge)](https://github.com/chahalgoyal/FORMA/releases/latest)
+[![Version](https://img.shields.io/badge/Version-1.2.0-blue?style=for-the-badge)](https://github.com/chahalgoyal/FORMA/releases/latest)
 [![Download ZIP](https://img.shields.io/badge/Download-ZIP%20Release-blueviolet?style=for-the-badge&logo=archive)](https://github.com/chahalgoyal/FORMA/releases/latest)
 [![Manifest V3](https://img.shields.io/badge/Chrome-MV3-orange?style=for-the-badge&logo=google-chrome)](https://developer.chrome.com/docs/extensions/mv3)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
@@ -15,12 +15,18 @@
 
 ---
 
-> **Forma** is a premium, intent-driven browser extension designed to eliminate the friction of campus placement drives. Built for students at institutions like **Chandigarh University (CU)**, it replaces tedious data entry with a "cozy," single-click experience that values accuracy and privacy above all else.
+> **Forma** is a premium, intent-driven browser extension designed to eliminate the friction of campus placement drives. It works on **Google Forms, Microsoft Forms, Greenhouse, Lever, Workday**, and any standard HTML form. Built for students at institutions like **Chandigarh University (CU)**, it replaces tedious data entry with a "cozy," single-click experience that values accuracy and privacy above all else.
 
 ---
 
 ## 📸 Experience Walkthrough
 
+
+### Universal Semantic Parser
+Forma doesn't just work on Google Forms — it works **everywhere**.
+- **W3C Accessibility Labels:** Reads `aria-labelledby`, `<label for>`, and implicit `<label>` wrapping.
+- **Heading Fallback:** For stubborn platforms like Microsoft Forms, it walks up the DOM to find question headings.
+- **SPA-Aware:** Uses a MutationObserver to wait for React/Angular-rendered inputs before parsing.
 
 ### Smart Matching Engine
 Forma doesn't just look for exact labels; it understands **intent**.
@@ -37,6 +43,12 @@ Forma moves away from sterile, boxy AI designs. The popup and options pages use 
 
 ## ✨ Full Feature List
 
+### 🌐 Platform Independence
+- ✅ **Universal Semantic Parser:** Works on Google Forms, Microsoft Forms, Greenhouse, Lever, Workday, and any standard HTML form.
+- ✅ **SPA Retry:** MutationObserver-based detection for async-rendered forms.
+- ✅ **Whitelisted Auto-Load:** Auto-fill on page load only triggers on domains you trust.
+- ✅ **Quick-Add Button:** One-click whitelist toggle directly in the popup.
+
 ### 🧠 Matching & Intelligence
 - ✅ **Three-Layer Pipeline:** Keyword → Fuzzy → Structural.
 - ✅ **Constraint Awareness:** Detects phone number formats and email types.
@@ -49,6 +61,7 @@ Forma moves away from sterile, boxy AI designs. The popup and options pages use 
 - ✅ **Real-time Status:** Shows exactly how many fields were filled vs. skipped.
 - ✅ **Highlight Clearing:** One-click removal of all visual highlights.
 - ✅ **Flexible Profile:** No mandatory fields — fill only what you need, save anytime.
+- ✅ **Settings & Whitelist Management:** Full domain management in the Options page.
 
 ### 🔒 Privacy & Performance
 - ✅ **Local-Only Storage:** All profile data stays on your machine (`chrome.storage.local`).
@@ -73,9 +86,10 @@ Forma moves away from sterile, boxy AI designs. The popup and options pages use 
 ┌───────────────────────────────────────────────────────────┐
 │                     CONTENT SCRIPT                        │
 │  ┌──────────────┐      ┌──────────────┐      ┌─────────┐  │
-│  │  DOM Parser  │ ───► │ Smart Matcher│ ───► │ Filler  │  │
-│  │ (Scans Form) │      │ (Three-Layer)│      │ (Logic) │  │
-│  └──────────────┘      └──────────────┘      └─────────┘  │
+│  │  Universal   │ ───► │ Smart Matcher│ ───► │ Filler  │  │
+│  │ DOM Parser   │      │ (Three-Layer)│      │ (Logic) │  │
+│  │ (W3C + SPA)  │      └──────────────┘      └─────────┘  │
+│  └──────────────┘                                         │
 └───────────────────────────────────────────────────────────┘
 ```
 
@@ -117,7 +131,7 @@ When you first install Forma, click **Edit Profile** in the extension popup to g
 Enter your academic and personal details in the "Cozy Organic" editor. There are no mandatory fields—fill out as much or as little as you want, and click **Save Profile** when you're done.
 
 ### 3. Autofill Anywhere
-Open any Google Form (like a placement or internship application) and click the **Autofill This Form** button in the Forma popup. You can also enable **Autofill on page load** using the toggle for a complete zero-click experience.
+Open any supported form — **Google Forms, Microsoft Forms, Greenhouse, Lever, Workday**, or any standard HTML form — and click the **Autofill This Form** button in the Forma popup. You can also enable **Autofill on page load** for whitelisted domains using the toggle for a complete zero-click experience. Add new sites to the whitelist with one click from the popup.
 
 ### 4. Review & Clear
 Forma will intelligently match and fill the form fields, highlighting them in a soft Sage Green so you can easily review what was changed. The popup will show you exactly how many fields were successfully filled or skipped. Once you've reviewed the form, you can clear the highlights with one click.
@@ -135,11 +149,20 @@ npm install
 # 3. Build the extension
 npm run build
 ```
-Load into Chrome: Go to `chrome://extensions/` → Enable **Developer mode** → **Load unpacked** → Select the `dist` folder.
+Load into Chrome: Go to `chrome://extensions/` → Enable **Developer mode** → **Load unpacked** → Select the project root folder (not the `dist` folder).
 
 ---
 
 ## 📋 Changelog
+
+### v1.2.0 — Platform Independence
+- **Universal Semantic Parser:** Replaced the Google Forms-specific DOM parser with a W3C accessibility-based engine that works on any HTML form.
+- **Platform Support:** Now supports Google Forms, Microsoft Forms, Greenhouse, Lever, Workday, and generic HTML forms out of the box.
+- **SPA Retry:** Added MutationObserver-based detection for React/Angular SPA forms that render inputs asynchronously.
+- **Whitelisted Auto-Load:** Auto-fill on page load is now restricted to user-approved domains, with a pre-seeded default list.
+- **Quick-Add in Popup:** One-click button to add/remove the current site from the auto-load whitelist.
+- **Settings Tab:** New "Settings & Whitelist" section in the Options page for managing approved domains.
+- **Expanded Keywords:** Added `telephone`, `student id`, `man`/`woman` gender mappings for broader compatibility.
 
 ### v1.1.0 — UI Polish & Precision Updates
 - **Visual Overhaul:** Refined the "Cozy Organic" UI to perfectly align the new branding and typography without layout distortions.
