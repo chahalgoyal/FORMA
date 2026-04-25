@@ -59,9 +59,9 @@
     <!-- Not on Form Warning -->
     <div id="not-on-form" class="info-message hidden">
       <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
-        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
       </svg>
-      <span>Open a Google Form to use Forma.</span>
+      <span>Please navigate to a standard webpage to use Autofill.</span>
     </div>
 
     <!-- Divider -->
@@ -80,6 +80,11 @@
           <input type="checkbox" id="toggle-autofill" />
           <span class="toggle-slider"></span>
         </label>
+      </div>
+      <div class="setting-row" id="whitelist-row" style="margin-top: 8px; justify-content: center; display: none;">
+        <button id="btn-whitelist" class="btn btn-secondary" style="width: 100%; font-size: 11px; padding: 4px;">
+          Enable Auto-Load for this site
+        </button>
       </div>
       <div class="setting-row" style="margin-top: 10px;">
         <div class="setting-label">

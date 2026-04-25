@@ -5,7 +5,7 @@
 // ──────────────────────────────────────────────
 
 import type { FormaProfile } from '../types/index.js';
-import { getProfile, saveProfile, clearAll } from '../core/storage/storageManager.js';
+import { getProfile, saveProfile, clearAll, getSettings, saveSettings } from '../core/storage/storageManager.js';
 
 // ─── DOM Mappings ────────────────────────────
 // Maps DOM input IDs to their profile key paths
@@ -70,8 +70,8 @@ const btnImport = document.getElementById('btn-import') as HTMLButtonElement;
 const importFileInput = document.getElementById('import-file-input') as HTMLInputElement;
 const backlogCountGroup = document.getElementById('backlog-count-group')!;
 const backlogCountInput = document.getElementById('backlog-count') as HTMLInputElement;
-const toast = document.getElementById('toast')!;
 const toastMessage = document.getElementById('toast-message')!;
+const whitelistTextarea = document.getElementById('whitelist-textarea') as HTMLTextAreaElement;
 
 // DOB elements
 const dobDisplay = document.getElementById('dob-display') as HTMLInputElement;
@@ -233,9 +233,15 @@ function updateCompleteness(): void {
 
 async function loadProfile(): Promise<void> {
   const profile = await getProfile();
-  if (!profile) return;
+  if (profile) {
+    populateFormFromProfile(profile);
+  }
 
-  populateFormFromProfile(profile);
+  // Load Settings
+  const settings = await getSettings();
+  if (settings.whitelistedDomains) {
+    whitelistTextarea.value = settings.whitelistedDomains.join('\n');
+  }
 }
 
 /**
@@ -335,7 +341,17 @@ async function handleSave(e: Event): Promise<void> {
   setNestedValue(profileObj, ['placement', 'backlogCount'], backlogCountInput.value || '0');
 
   await saveProfile(profileObj as unknown as FormaProfile);
-  showToast('Profile saved successfully! ✓', 'success');
+
+  // Save Settings
+  const settings = await getSettings();
+  const domains = whitelistTextarea.value
+    .split('\n')
+    .map(line => line.trim().toLowerCase())
+    .filter(line => line.length > 0);
+  settings.whitelistedDomains = domains;
+  await saveSettings(settings);
+
+  showToast('Profile and Settings saved successfully! ✓', 'success');
   updateCompleteness();
 }
 

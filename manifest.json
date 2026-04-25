@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Forma",
-  "version": "1.1.0",
-  "description": "Smart autofill for placement and internship Google Forms.",
+  "version": "1.2.0",
+  "description": "Smart autofill for job portals, Microsoft Forms, and Google Forms.",
   "icons": {
     "16": "assets/icon128.png",
     "48": "assets/icon128.png",
@@ -18,7 +18,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://docs.google.com/forms/*"],
+      "matches": ["<all_urls>"],
       "js": ["dist/content.js"],
       "run_at": "document_idle"
     }
@@ -30,6 +30,6 @@
     "notifications"
   ],
   "host_permissions": [
-    "https://docs.google.com/forms/*"
+    "<all_urls>"
   ]
 }

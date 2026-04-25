@@ -21,11 +21,15 @@ const toggleAutofill = document.getElementById('toggle-autofill') as HTMLInputEl
 const toggleTheme = document.getElementById('toggle-theme') as HTMLInputElement;
 const btnOptions = document.getElementById('btn-options') as HTMLAnchorElement;
 const popupLogo = document.getElementById('popup-logo') as HTMLImageElement;
+const whitelistRow = document.getElementById('whitelist-row') as HTMLDivElement;
+const btnWhitelist = document.getElementById('btn-whitelist') as HTMLButtonElement;
 
 // ─── State ───────────────────────────────────
 
-let isOnGoogleForm = false;
+let isValidWebpage = false;
 let hasProfile = false;
+let currentHostname = '';
+let isWhitelisted = false;
 
 // ─── Initialization ─────────────────────────
 
@@ -42,19 +46,22 @@ async function initialize(): Promise<void> {
     profileText.textContent = 'Profile: Incomplete — click Edit Profile';
   }
 
-  // Check if we're on a Google Form
+  // Check if we're on a valid webpage (not chrome://)
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    isOnGoogleForm = tab?.url?.includes('docs.google.com/forms') ?? false;
+    isValidWebpage = tab?.url?.startsWith('http') ?? false;
+    if (isValidWebpage && tab?.url) {
+      currentHostname = new URL(tab.url).hostname;
+    }
   } catch {
-    isOnGoogleForm = false;
+    isValidWebpage = false;
   }
 
   // Update button state
   if (!hasProfile) {
     btnAutofill.disabled = true;
     btnAutofill.title = 'Set up your profile first';
-  } else if (!isOnGoogleForm) {
+  } else if (!isValidWebpage) {
     btnAutofill.disabled = true;
     notOnForm.classList.remove('hidden');
   } else {
@@ -64,6 +71,15 @@ async function initialize(): Promise<void> {
   // Load settings
   const settings = await getSettings();
   toggleAutofill.checked = settings.autoFillOnLoad;
+
+  // Manage Whitelist UI
+  if (isValidWebpage && currentHostname) {
+    whitelistRow.style.display = 'flex';
+    isWhitelisted = settings.whitelistedDomains?.includes(currentHostname) ?? false;
+    updateWhitelistButtonUI();
+  } else {
+    whitelistRow.style.display = 'none';
+  }
 
   // Load theme
   const themeResult = await chrome.storage.local.get('formaTheme');
@@ -77,7 +93,7 @@ async function initialize(): Promise<void> {
 
 // Autofill button
 btnAutofill.addEventListener('click', async () => {
-  if (!hasProfile || !isOnGoogleForm) return;
+  if (!hasProfile || !isValidWebpage) return;
 
   // Show loading state
   btnAutofill.classList.add('loading');
@@ -137,6 +153,27 @@ toggleAutofill.addEventListener('change', async () => {
   await saveSettings(settings);
 });
 
+// Whitelist toggle
+btnWhitelist.addEventListener('click', async () => {
+  if (!currentHostname) return;
+  const settings = await getSettings();
+  const list = settings.whitelistedDomains || [];
+
+  if (isWhitelisted) {
+    settings.whitelistedDomains = list.filter(d => d !== currentHostname);
+    isWhitelisted = false;
+  } else {
+    if (!list.includes(currentHostname)) {
+      list.push(currentHostname);
+    }
+    settings.whitelistedDomains = list;
+    isWhitelisted = true;
+  }
+
+  await saveSettings(settings);
+  updateWhitelistButtonUI();
+});
+
 // Edit Profile link
 btnOptions.addEventListener('click', (e) => {
   e.preventDefault();
@@ -157,6 +194,18 @@ function updateLogo(theme: string): void {
   popupLogo.src = theme === 'dark'
     ? chrome.runtime.getURL('assets/logo-dark.png')
     : chrome.runtime.getURL('assets/logo-light.png');
+}
+
+function updateWhitelistButtonUI(): void {
+  if (isWhitelisted) {
+    btnWhitelist.textContent = 'Disable Auto-Load for this site';
+    btnWhitelist.classList.replace('btn-secondary', 'btn-primary');
+    btnWhitelist.style.backgroundColor = '#cc0000';
+  } else {
+    btnWhitelist.textContent = 'Enable Auto-Load for this site';
+    btnWhitelist.classList.replace('btn-primary', 'btn-secondary');
+    btnWhitelist.style.backgroundColor = '';
+  }
 }
 
 function showResults(result: FormaResultPayload): void {

@@ -1,6 +1,6 @@
 {
   "name": "forma-extension",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Smart autofill for placement and internship Google Forms.",
   "type": "module",
   "scripts": {
