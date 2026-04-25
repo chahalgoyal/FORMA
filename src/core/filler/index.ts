@@ -123,11 +123,12 @@ function formatDob(isoDate: string): string {
  * @returns true if filled successfully, false if skipped
  */
 export async function fill(
-  container: Element,
+  inputElements: Element[],
   fieldType: FieldType,
   matchResult: MatchResult,
   profile: FormaProfile,
-  settings: FormaSettings = DEFAULT_SETTINGS
+  settings: FormaSettings = DEFAULT_SETTINGS,
+  container?: Element
 ): Promise<boolean> {
   const value = resolveProfileValue(matchResult, profile, container);
 
@@ -141,13 +142,13 @@ export async function fill(
 
   switch (fieldType) {
     case 'text':
-      return fillTextInput(container, value);
+      return fillTextInput(inputElements, value);
 
     case 'radio':
-      return fillRadio(container, value, settings.fuseThreshold);
+      return fillRadio(inputElements, value, settings.fuseThreshold);
 
     case 'dropdown':
-      return fillDropdown(container, value, settings.fuseThreshold);
+      return fillDropdown(inputElements, value, settings.fuseThreshold);
 
     default:
       console.warn(`[Forma] Unknown field type: ${fieldType}`);

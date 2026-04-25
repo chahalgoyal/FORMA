@@ -42,9 +42,10 @@ export function injectHighlightStyles(): void {
  * @param type      - "filled" (green) or "skipped" (yellow)
  */
 export function applyHighlight(
-  container: Element,
+  container: Element | undefined,
   type: 'filled' | 'skipped'
 ): void {
+  if (!container) return;
   // Remove any existing highlight first
   container.classList.remove(HIGHLIGHT_CLASSES.FILLED, HIGHLIGHT_CLASSES.SKIPPED);
 

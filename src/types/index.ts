@@ -66,6 +66,7 @@ export interface FormaSettings {
   fuseThreshold: number;
   highlightFilled: string;
   highlightSkipped: string;
+  whitelistedDomains: string[];
 }
 
 // ─── Learned Mappings ────────────────────────
@@ -105,7 +106,8 @@ export interface MatchResult {
 export type FieldType = 'text' | 'radio' | 'dropdown';
 
 export interface FormField {
-  container: Element;
+  container?: Element;
+  inputElements: Element[];
   rawLabel: string;
   normalizedLabel: string;
   inputType: FieldType;

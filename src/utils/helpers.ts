@@ -5,7 +5,7 @@
 import type { FormaProfile, ProfileKeyPath } from '../types/index.js';
 
 /**
- * Normalizes a Google Form label for matching:
+ * Normalizes a form label for matching:
  * - Lowercases
  * - Strips required-field asterisks
  * - Collapses whitespace
@@ -197,8 +197,8 @@ export function findBestShorthandMatch<T extends { element: HTMLElement; text: s
   const shorthands: Record<string, string[]> = {
     'yes': ['y', 'yes', 'true', '1'],
     'no': ['n', 'no', 'false', '0'],
-    'male': ['m', 'male'],
-    'female': ['f', 'female'],
+    'male': ['m', 'male', 'man'],
+    'female': ['f', 'female', 'woman'],
   };
 
   const allowedShorthands = shorthands[val];

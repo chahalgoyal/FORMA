@@ -34,11 +34,10 @@ export function attachLearningListeners(
   const leafValues = getAllLeafValues(profile);
 
   for (const field of fields) {
-    const input = queryFirst(SELECTORS.TEXT_INPUT, field.container) as
-      | HTMLInputElement
-      | HTMLTextAreaElement
-      | null;
-
+    // Only attach to the primary input for text fields (skip radios/dropdowns for now)
+    if (field.inputType !== 'text') continue;
+    
+    const input = field.inputElements[0] as HTMLInputElement | HTMLTextAreaElement | null;
     if (!input) continue;
 
     // Track the value at fill time to detect changes

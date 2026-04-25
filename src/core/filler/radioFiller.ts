@@ -1,56 +1,84 @@
 // ──────────────────────────────────────────────
-// Forma — Radio Button Filler
-// Finds and clicks the best matching radio option
+// Forma — Radio Input Filler
+// Fills <input type="radio"> or [role="radiogroup"]
 // ──────────────────────────────────────────────
 
 import Fuse from 'fuse.js';
 import { SELECTORS } from '../../utils/constants.js';
-import { simulateClick, findBestShorthandMatch } from '../../utils/helpers.js';
+import { queryFirst, simulateClick, findBestShorthandMatch } from '../../utils/helpers.js';
 
-/**
- * Fills a radio button group within a question container.
- *
- * Extracts the visible text from each radio option, then uses
- * a two-step matching approach:
- * 1. Exact/Shorthand matching (e.g., "Yes" matches "Y")
- * 2. Fuse.js fuzzy matching as a fallback
- *
- * @param container - The question container element
- * @param value     - The profile value to match (e.g., "Male", "Yes")
- * @param threshold - Fuse.js score threshold (default 0.35)
- * @returns true if a radio option was clicked, false otherwise
- */
 export function fillRadio(
-  container: Element,
+  inputElements: Element[],
   value: string,
   threshold: number = 0.35
 ): boolean {
   try {
-    const options = container.querySelectorAll(SELECTORS.RADIO_OPTION);
+    if (!inputElements || inputElements.length === 0) return false;
 
-    if (options.length === 0) {
-      console.warn('[Forma] No radio options found in container');
+    // ── Handle Google Forms custom radiogroup ──
+    if (inputElements[0].getAttribute('role') === 'radiogroup') {
+      const container = inputElements[0];
+      const optionElements = Array.from(container.querySelectorAll(SELECTORS.RADIO_OPTION));
+      if (optionElements.length === 0) return false;
+
+      const optionEntries = optionElements.map((opt) => ({
+        element: opt as HTMLElement,
+        text: (opt.getAttribute('data-value') || opt.getAttribute('aria-label') || opt.textContent || '').trim(),
+      }));
+
+      // Shorthand
+      const shorthandMatch = findBestShorthandMatch(optionEntries, value);
+      if (shorthandMatch) {
+        simulateClick(shorthandMatch);
+        return true;
+      }
+
+      // Fuse
+      const fuse = new Fuse(optionEntries, {
+        keys: ['text'],
+        threshold,
+        ignoreLocation: true,
+        includeScore: true,
+      });
+
+      const results = fuse.search(value);
+      if (results.length > 0 && results[0].score !== undefined && results[0].score < threshold) {
+        simulateClick(results[0].item.element);
+        return true;
+      }
       return false;
     }
 
-    // Extract text from each option
-    const optionEntries = Array.from(options).map((opt) => {
-      let text = opt.getAttribute('data-value') || opt.getAttribute('aria-label') || opt.textContent || '';
-      return {
-        element: opt as HTMLElement,
-        text: text.trim(),
-      };
-    });
+    // ── Handle Native <input type="radio"> group ──
+    const optionEntries = inputElements.map((radio) => {
+      let labelText = radio.getAttribute('value') || '';
+      
+      // Look for an associated label to get the human-readable text
+      if (radio.id) {
+        const labelEl = document.querySelector(`label[for="${radio.id}"]`);
+        if (labelEl) labelText = (labelEl as HTMLElement).innerText;
+      }
+      if (!labelText) {
+        const parentLabel = radio.closest('label');
+        if (parentLabel) labelText = parentLabel.innerText;
+      }
 
-    // Step 1: Shorthand / Exact match
+      return {
+        element: radio as HTMLElement,
+        text: labelText.trim()
+      };
+    }).filter(entry => entry.text);
+
+    // Shorthand
     const shorthandMatch = findBestShorthandMatch(optionEntries, value);
     if (shorthandMatch) {
-      simulateClick(shorthandMatch);
-      console.debug(`[Forma] Clicked radio option via shorthand match: "${value}"`);
+      const radio = shorthandMatch as HTMLInputElement;
+      radio.checked = true;
+      radio.dispatchEvent(new Event('change', { bubbles: true }));
       return true;
     }
 
-    // Step 2: Use Fuse.js to find the best text match as fallback
+    // Fuse
     const fuse = new Fuse(optionEntries, {
       keys: ['text'],
       threshold,
@@ -59,24 +87,16 @@ export function fillRadio(
     });
 
     const results = fuse.search(value);
-
-    if (results.length === 0 || results[0].score === undefined || results[0].score >= threshold) {
-      console.debug(`[Forma] No radio option matched for value "${value}"`);
-      return false;
+    if (results.length > 0 && results[0].score !== undefined && results[0].score < threshold) {
+      const radio = results[0].item.element as HTMLInputElement;
+      radio.checked = true;
+      radio.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
     }
 
-    // Click the best matching option
-    const bestMatch = results[0].item;
-    simulateClick(bestMatch.element);
-
-    console.debug(
-      `[Forma] Clicked radio option "${bestMatch.text}" (score: ${results[0].score.toFixed(3)})`
-    );
-    return true;
+    return false;
   } catch (error) {
-    console.warn(
-      `[Forma] Radio fill failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-    );
+    console.warn(`[Forma] Radio fill failed: ${error}`);
     return false;
   }
 }

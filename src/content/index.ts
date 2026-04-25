@@ -1,6 +1,6 @@
 // ──────────────────────────────────────────────
 // Forma — Content Script Orchestrator
-// Main entry point injected into Google Forms
+// Main entry point injected into web forms
 // ──────────────────────────────────────────────
 
 import type {
@@ -16,6 +16,43 @@ import { match } from '../core/matcher/index.js';
 import { fill } from '../core/filler/index.js';
 import { injectHighlightStyles, applyHighlight, clearAllHighlights } from './highlighter.js';
 import { attachLearningListeners } from './learningWatcher.js';
+
+/**
+ * Waits for input elements to appear in the DOM.
+ * SPAs like Microsoft Forms render their fields asynchronously,
+ * so our parser may fire before inputs exist.
+ * Uses a MutationObserver with a timeout fallback.
+ */
+function waitForInputs(timeoutMs: number): Promise<void> {
+  return new Promise((resolve) => {
+    // Check if inputs already exist
+    const inputSelector = 'input:not([type="hidden"]), textarea, select, [role="listbox"], [role="radiogroup"]';
+    if (document.querySelectorAll(inputSelector).length > 0) {
+      resolve();
+      return;
+    }
+
+    let resolved = false;
+    const done = () => {
+      if (resolved) return;
+      resolved = true;
+      observer.disconnect();
+      clearTimeout(timer);
+      resolve();
+    };
+
+    const observer = new MutationObserver(() => {
+      if (document.querySelectorAll(inputSelector).length > 0) {
+        done();
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Timeout fallback — don't wait forever
+    const timer = setTimeout(done, timeoutMs);
+  });
+}
 
 /**
  * Runs the full autofill pipeline:
@@ -47,11 +84,19 @@ async function runAutofill(): Promise<FormaResultPayload> {
     };
   }
 
-  // ── Step 2: Parse form fields ──
-  const fields = parseFormFields();
+  // ── Step 2: Parse form fields (with SPA retry) ──
+  let fields = parseFormFields();
+
+  // If no fields found, the page might be a SPA still rendering.
+  // Wait for inputs to appear in the DOM, then retry once.
+  if (fields.length === 0) {
+    console.debug('[Forma] No fields on first pass. Waiting for SPA render...');
+    await waitForInputs(5000);
+    fields = parseFormFields();
+  }
 
   if (fields.length === 0) {
-    console.warn('[Forma] No form fields found on this page.');
+    console.debug('[Forma] No form fields found on this page.');
     return {
       filledCount: 0,
       skippedCount: 0,
@@ -85,11 +130,12 @@ async function runAutofill(): Promise<FormaResultPayload> {
     let success: boolean;
     try {
       success = await fill(
-        field.container,
+        field.inputElements,
         field.inputType,
         matchResult,
         profile,
-        settings
+        settings,
+        field.container
       );
     } catch (error) {
       console.warn(
@@ -180,10 +226,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 (async () => {
   try {
     const settings = await getSettings();
+    const currentHostname = window.location.hostname;
+    const isWhitelisted = settings.whitelistedDomains?.includes(currentHostname) ?? false;
 
-    if (settings.autoFillOnLoad) {
+    if (settings.autoFillOnLoad && isWhitelisted) {
       console.debug(
-        `[Forma] Auto-fill on load enabled. Waiting ${settings.autoFillDelay}ms...`
+        `[Forma] Auto-load triggered for whitelisted domain: ${currentHostname}`
       );
 
       setTimeout(async () => {

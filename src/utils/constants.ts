@@ -27,6 +27,13 @@ export const DEFAULT_SETTINGS: FormaSettings = {
   fuseThreshold: 0.35,
   highlightFilled: '#f0f4ee',    // Softest Sage
   highlightSkipped: '#fcf6ed',   // Softest Amber
+  whitelistedDomains: [
+    'docs.google.com',
+    'forms.office.com',
+    'greenhouse.io',
+    'jobs.lever.co',
+    'myworkdayjobs.com',
+  ],
 };
 
 // ─── DOM Selectors ───────────────────────────
@@ -186,7 +193,8 @@ export const STATIC_MAPPINGS: StaticMapping[] = [
     patterns: [
       'phone', 'mobile', 'contact number', 'contact no',
       'phone number', 'phone no', 'mobile number', 'mobile no',
-      'primary phone', 'primary mobile',
+      'telephone', 'telephone number', 'telephone no',
+      'primary phone', 'primary mobile', 'primary telephone number',
       'primary phone number', 'primary phone no',
       'primary mobile number', 'primary mobile no',
       'primary contact no', 'primary contact number',
@@ -236,7 +244,8 @@ export const STATIC_MAPPINGS: StaticMapping[] = [
       'enrollment number', 'registration number',
       'university id', 'university roll',
       'university roll number', 'enrollment id',
-      'reg no', 'reg number', 'uid',
+      'reg no', 'reg number', 'uid', 'student id',
+      'student id number', 'student number',
     ],
   },
   {

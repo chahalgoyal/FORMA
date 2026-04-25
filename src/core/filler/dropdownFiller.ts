@@ -1,87 +1,82 @@
 // ──────────────────────────────────────────────
 // Forma — Dropdown Filler
-// Opens a listbox, matches options, and selects
+// Fills <select> or Google Forms [role="listbox"]
 // ──────────────────────────────────────────────
 
 import Fuse from 'fuse.js';
 import { SELECTORS } from '../../utils/constants.js';
 import { queryFirst, simulateClick, findBestShorthandMatch } from '../../utils/helpers.js';
 
-/**
- * Creates a promise that resolves after a given delay.
- */
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/**
- * Fills a dropdown (listbox) within a question container.
- *
- * Google Forms renders dropdowns as div[role="listbox"]. The options
- * are not in the DOM until the listbox is clicked open.
- *
- * Steps:
- * 1. Click the listbox to open it
- * 2. Wait 150ms for options to render
- * 3. Match profile value via shorthand or Fuse.js
- * 4. Click the best match, or close the dropdown if no match
- *
- * @param container - The question container element
- * @param value     - The profile value to match
- * @param threshold - Fuse.js score threshold (default 0.35)
- * @returns true if an option was selected, false otherwise
- */
 export async function fillDropdown(
-  container: Element,
+  inputElements: Element[],
   value: string,
   threshold: number = 0.35
 ): Promise<boolean> {
   try {
-    const listbox = queryFirst(SELECTORS.DROPDOWN_CONTAINER, container) as HTMLElement | null;
+    const listbox = inputElements[0] as HTMLElement | null;
+    if (!listbox) return false;
 
-    if (!listbox) {
-      console.warn('[Forma] Dropdown listbox not found in container');
+    // ── Handle Native <select> ──
+    if (listbox.tagName === 'SELECT') {
+      const selectEl = listbox as HTMLSelectElement;
+      const optionEntries = Array.from(selectEl.options).map(opt => ({
+        element: opt,
+        text: opt.text.trim()
+      }));
+
+      // Shorthand Match
+      const shorthandMatch = findBestShorthandMatch(optionEntries, value);
+      if (shorthandMatch) {
+        selectEl.value = (shorthandMatch as HTMLOptionElement).value;
+        selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+      }
+
+      // Fuse Match
+      const fuse = new Fuse(optionEntries, {
+        keys: ['text'],
+        threshold,
+        ignoreLocation: true,
+        includeScore: true,
+      });
+
+      const results = fuse.search(value);
+      if (results.length > 0 && results[0].score !== undefined && results[0].score < threshold) {
+        selectEl.value = (results[0].item.element as HTMLOptionElement).value;
+        selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+      }
       return false;
     }
 
-    // Step 1: Open the dropdown
+    // ── Handle Google Forms custom listbox ──
     simulateClick(listbox);
+    await wait(150); // wait for dropdown to render in DOM
 
-    // Step 2: Wait for options to render
-    await wait(150);
-
-    // Step 3: Query options
-    let optionElements = container.querySelectorAll(SELECTORS.DROPDOWN_OPTION);
-
+    // Options in Google Forms are usually rendered in a portal or at the end of the container
+    let optionElements = document.querySelectorAll(SELECTORS.DROPDOWN_OPTION);
     if (optionElements.length === 0) {
-      optionElements = document.querySelectorAll(SELECTORS.DROPDOWN_OPTION);
-    }
-
-    if (optionElements.length === 0) {
-      console.warn('[Forma] No dropdown options found after opening');
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       return false;
     }
 
-    // Extract text from each option
-    const optionEntries = Array.from(optionElements).map((opt) => {
-      let text = opt.getAttribute('data-value') || opt.getAttribute('aria-label') || opt.textContent || '';
-      return {
-        element: opt as HTMLElement,
-        text: text.trim(),
-      };
-    });
+    const optionEntries = Array.from(optionElements).map((opt) => ({
+      element: opt as HTMLElement,
+      text: (opt.getAttribute('data-value') || opt.getAttribute('aria-label') || opt.textContent || '').trim(),
+    }));
 
-    // Step 4: Matching
-    // Try Shorthand / Exact match first
+    // Shorthand
     const shorthandMatch = findBestShorthandMatch(optionEntries, value);
     if (shorthandMatch) {
       simulateClick(shorthandMatch);
-      console.debug(`[Forma] Selected dropdown option via shorthand match: "${value}"`);
       return true;
     }
 
-    // Fuse.js fallback
+    // Fuse
     const fuse = new Fuse(optionEntries, {
       keys: ['text'],
       threshold,
@@ -90,34 +85,19 @@ export async function fillDropdown(
     });
 
     const results = fuse.search(value);
-
-    if (results.length === 0 || results[0].score === undefined || results[0].score >= threshold) {
-      console.debug(`[Forma] No dropdown option matched for value "${value}"`);
-      // Close the dropdown
-      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-      return false;
+    if (results.length > 0 && results[0].score !== undefined && results[0].score < threshold) {
+      simulateClick(results[0].item.element);
+      return true;
     }
 
-    // Click the best matching option
-    const bestMatch = results[0].item;
-    simulateClick(bestMatch.element);
-
-    console.debug(
-      `[Forma] Selected dropdown option "${bestMatch.text}" (score: ${results[0].score.toFixed(3)})`
-    );
-    return true;
+    // Fallback: close dropdown
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    return false;
   } catch (error) {
-    console.warn(
-      `[Forma] Dropdown fill failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-    );
-
-    // Attempt to close the dropdown
+    console.warn(`[Forma] Dropdown fill failed: ${error}`);
     try {
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-    } catch {
-      // Silently ignore
-    }
-
+    } catch {}
     return false;
   }
 }
