@@ -1,6 +1,8 @@
 <div align="center">
-  <img src="./assets/logo-light.png" width="200" alt="Forma Logo" />
-  <h1 style="margin-top: 10px; margin-bottom: 0;">FORMA</h1>
+  <h1>
+    <img src="./assets/logo-light.png" width="200" alt="Forma Logo" /><br>
+    FORMA
+  </h1>
   <h3>AI-Powered, Privacy-First Autofill for Students</h3>
 
 [![Version](https://img.shields.io/badge/Version-2.0.0-blue?style=for-the-badge)](https://github.com/chahalgoyal/FORMA/releases/latest)
