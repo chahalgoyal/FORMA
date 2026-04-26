@@ -18,7 +18,7 @@ const skippedCount = document.getElementById('skipped-count')!;
 const btnClear = document.getElementById('btn-clear') as HTMLButtonElement;
 const notOnForm = document.getElementById('not-on-form')!;
 const toggleAutofill = document.getElementById('toggle-autofill') as HTMLInputElement;
-const toggleTheme = document.getElementById('toggle-theme') as HTMLInputElement;
+const toggleTheme = document.getElementById('toggle-theme') as HTMLButtonElement;
 const btnOptions = document.getElementById('btn-options') as HTMLAnchorElement;
 const popupLogo = document.getElementById('popup-logo') as HTMLImageElement;
 const whitelistRow = document.getElementById('whitelist-row') as HTMLDivElement;
@@ -85,9 +85,42 @@ async function initialize(): Promise<void> {
   const themeResult = await chrome.storage.local.get('formaTheme');
   const theme = themeResult.formaTheme || 'light';
   document.documentElement.setAttribute('data-theme', theme);
-  toggleTheme.checked = theme === 'dark';
   updateLogo(theme);
+
+  // Check if an autoload already completed and fetch stats
+  if (isValidWebpage) {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab.id) {
+        const response = await chrome.tabs.sendMessage(tab.id, { type: 'FORMA_GET_STATUS' });
+        if (response && response.type === 'FORMA_RESULT' && response.payload) {
+          showResults(response.payload);
+        }
+        // If AI is currently processing, show the loader
+        if (response && response.isAiProcessing) {
+          const aiLoader = document.getElementById('ai-loader')!;
+          aiLoader.classList.remove('hidden');
+        }
+      }
+    } catch (e) {
+      // Content script might not be injected yet
+    }
+  }
 }
+
+// ─── Real-Time Listener ─────────────────────
+// Listens for broadcasts from the content script when
+// autofill completes (e.g. during autoload). This replaces
+// the old polling approach with instant updates.
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.type === 'FORMA_AUTOLOAD_DONE' && message.payload) {
+    // Hide AI loader and show results instantly
+    const aiLoader = document.getElementById('ai-loader');
+    if (aiLoader) aiLoader.classList.add('hidden');
+    showResults(message.payload as FormaResultPayload);
+  }
+});
 
 // ─── Event Handlers ─────────────────────────
 
@@ -99,6 +132,13 @@ btnAutofill.addEventListener('click', async () => {
   btnAutofill.classList.add('loading');
   btnAutofill.textContent = 'Filling...';
   btnAutofill.disabled = true;
+
+  // Show AI loader if AI is enabled
+  const aiLoader = document.getElementById('ai-loader')!;
+  const settings = await getSettings();
+  if (settings.enableAi) {
+    aiLoader.classList.remove('hidden');
+  }
 
   try {
     // Send fill command through service worker
@@ -124,6 +164,9 @@ btnAutofill.addEventListener('click', async () => {
       skippedLabels: [],
     });
   }
+
+  // Hide AI loader
+  aiLoader.classList.add('hidden');
 
   // Reset button
   btnAutofill.classList.remove('loading');
@@ -180,9 +223,10 @@ btnOptions.addEventListener('click', (e) => {
   chrome.runtime.openOptionsPage();
 });
 
-// Dark mode toggle
-toggleTheme.addEventListener('change', async () => {
-  const theme = toggleTheme.checked ? 'dark' : 'light';
+// Dark mode toggle (button, not checkbox)
+toggleTheme.addEventListener('click', async () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  const theme = current === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', theme);
   updateLogo(theme);
   await chrome.storage.local.set({ formaTheme: theme });
@@ -208,10 +252,17 @@ function updateWhitelistButtonUI(): void {
   }
 }
 
-function showResults(result: FormaResultPayload): void {
+async function showResults(result: FormaResultPayload): Promise<void> {
   filledCount.textContent = String(result.filledCount);
   skippedCount.textContent = String(result.skippedCount);
   resultsArea.classList.remove('hidden');
+
+  // Show AI Warning if AI is enabled
+  const settings = await getSettings();
+  const aiWarning = document.getElementById('ai-warning');
+  if (aiWarning) {
+    aiWarning.style.display = settings.enableAi ? 'block' : 'none';
+  }
 }
 
 // ─── Run ─────────────────────────────────────
