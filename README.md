@@ -1,7 +1,8 @@
 <div align="center">
-<img src="./assets/logo-light.png" width="200" alt="Forma Logo" />
+<img src="./assets/logo-light.png" width="400" alt="Forma Logo" />
 
-# FORMA
+<br>
+<br>
 
 ### AI-Powered, Privacy-First Autofill for Students
 
