@@ -3,71 +3,130 @@
 
 # FORMA
 
-### A privacy-first, platform-independent autofill assistant for students.
+### AI-Powered, Privacy-First Autofill for Students
 
-[![Version](https://img.shields.io/badge/Version-1.2.0-blue?style=for-the-badge)](https://github.com/chahalgoyal/FORMA/releases/latest)
-[![Download ZIP](https://img.shields.io/badge/Download-ZIP%20Release-blueviolet?style=for-the-badge&logo=archive)](https://github.com/chahalgoyal/FORMA/releases/latest)
-[![Manifest V3](https://img.shields.io/badge/Chrome-MV3-orange?style=for-the-badge&logo=google-chrome)](https://developer.chrome.com/docs/extensions/mv3)
+[![Version](https://img.shields.io/badge/Version-2.0.0-blue?style=for-the-badge)](https://github.com/chahalgoyal/FORMA/releases/latest)
+[![Chrome Web Store](https://img.shields.io/badge/Chrome-Web%20Store-4285F4?style=for-the-badge&logo=google-chrome)](https://chromewebstore.google.com)
+[![Manifest V3](https://img.shields.io/badge/Manifest-V3-orange?style=for-the-badge&logo=google-chrome)](https://developer.chrome.com/docs/extensions/mv3)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
-[![Privacy First](https://img.shields.io/badge/Privacy-Local%20Only-success?style=for-the-badge&logo=shield)](https://github.com/chahalgoyal/FORMA)
+[![Gemini Nano](https://img.shields.io/badge/AI-Gemini%20Nano-8E75B2?style=for-the-badge&logo=google)](https://deepmind.google/technologies/gemini/nano/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](./LICENSE)
+[![Privacy First](https://img.shields.io/badge/Privacy-100%25%20Local-success?style=for-the-badge&logo=shield)](https://github.com/chahalgoyal/FORMA)
 
 </div>
 
 ---
 
-> **Forma** is a premium, intent-driven browser extension designed to eliminate the friction of campus placement drives. It works on **Google Forms, Microsoft Forms, Greenhouse, Lever, Workday**, and any standard HTML form. Built for students at institutions like **Chandigarh University (CU)**, it replaces tedious data entry with a "cozy," single-click experience that values accuracy and privacy above all else.
+> **Forma** is a premium browser extension that eliminates the tedious, repetitive data entry of campus placement drives. It works on **Google Forms, Microsoft Forms, Greenhouse, Lever, Workday**, and any standard HTML form — filling your details accurately in a single click.
+>
+> In v2.0.0, Forma introduces a **local AI engine powered by Chrome's built-in Gemini Nano** that semantically maps form fields your keyword matcher can't reach. Everything runs **100% on-device** — no cloud, no API keys, no data leaves your machine.
 
 ---
 
-## 📸 Experience Walkthrough
+## 📸 Screenshots
 
+<div align="center">
 
-### Universal Semantic Parser
-Forma doesn't just work on Google Forms — it works **everywhere**.
-- **W3C Accessibility Labels:** Reads `aria-labelledby`, `<label for>`, and implicit `<label>` wrapping.
-- **Heading Fallback:** For stubborn platforms like Microsoft Forms, it walks up the DOM to find question headings.
-- **SPA-Aware:** Uses a MutationObserver to wait for React/Angular-rendered inputs before parsing.
+### Popup — Light & Dark Mode
+<p>
+  <img src="./screenshots/popup-light.png" width="280" alt="Forma Popup - Light Mode" />
+  &nbsp;&nbsp;&nbsp;
+  <img src="./screenshots/popup-dark.png" width="280" alt="Forma Popup - Dark Mode" />
+</p>
 
-### Smart Matching Engine
-Forma doesn't just look for exact labels; it understands **intent**.
-- **Keyword Matching:** Handles direct hits like "First Name" or "UID."
-- **Fuzzy Search:** Powered by **Fuse.js**, it handles typos and synonyms like "Enrollment Number" vs "Roll No."
-- **Structural Analysis:** Intelligently detects constraints like "without country code" or "10-digit number."
+### Profile Editor
+<img src="./screenshots/profile-editor-dark.png" width="700" alt="Forma Profile Editor - Dark Mode" />
 
-### Adaptive Learning
-When you manually correct a field, Forma notices. It performs a **reverse-lookup** into your profile and asks if it should remember that specific mapping for every future form you encounter.
+### Autofill in Action
+<img src="./screenshots/autofill-highlights.png" width="500" alt="Google Form with Forma highlights" />
 
-### The "Cozy Organic" Interface
-Forma moves away from sterile, boxy AI designs. The popup and options pages use a **warm, earthy palette** and a unique **plaque-style design** that feels tactile and approachable.
+<sub>Green = filled successfully · Amber = skipped (no matching data)</sub>
+
+### AI Processing
+<p>
+  <img src="./screenshots/ai-loader-popup.png" width="280" alt="AI Loader in Popup" />
+  &nbsp;&nbsp;&nbsp;
+  <img src="./screenshots/ai-toast.png" width="280" alt="AI Processing Toast" />
+</p>
+
+<sub>Left: popup spinner during AI inference · Right: on-page toast notification</sub>
+
+### Settings & AI Engine
+<img src="./screenshots/settings-tab.png" width="700" alt="Settings Tab with AI Engine" />
+
+### Custom Fields
+<img src="./screenshots/custom-fields.png" width="700" alt="Custom Fields" />
+
+</div>
+
+## 🧠 What Makes Forma Different
+
+### The Problem
+During placement season, students fill **dozens of forms** across different platforms — every single one asking for the same 40+ fields. Name, roll number, CGPA, phone, email, address, 10th marks, 12th marks, backlogs, LinkedIn, GitHub... over and over.
+
+Existing autofill tools (Chrome's built-in, LastPass, etc.) are designed for login forms — they don't understand academic fields like "Enrollment Number", "10th Board", or "Active Backlogs".
+
+### The Solution
+Forma is built specifically for this use case. It understands the **semantics** of placement forms:
+
+- It knows "UID", "Roll No", "Enrollment Number", and "Student ID" all mean the same thing
+- It knows "without country code" means strip the `+91` from your phone number
+- It knows the difference between your 10th board and your 12th board
+- And when its keyword engine can't figure it out, the **Gemini Nano AI** steps in to map the field semantically — all running locally on your device
+
 ---
 
-## ✨ Full Feature List
+## ✨ Feature Overview
 
-### 🌐 Platform Independence
-- ✅ **Universal Semantic Parser:** Works on Google Forms, Microsoft Forms, Greenhouse, Lever, Workday, and any standard HTML form.
-- ✅ **SPA Retry:** MutationObserver-based detection for async-rendered forms.
-- ✅ **Whitelisted Auto-Load:** Auto-fill on page load only triggers on domains you trust.
-- ✅ **Quick-Add Button:** One-click whitelist toggle directly in the popup.
+### 🌐 Universal Platform Support
+Forma doesn't just work on Google Forms. Its **Universal Semantic Parser** reads W3C accessibility labels (`aria-labelledby`, `<label for>`, implicit `<label>` wrapping), falls back to heading-based detection for stubborn platforms like Microsoft Forms, and uses a MutationObserver to handle React/Angular SPAs that render inputs asynchronously.
 
-### 🧠 Matching & Intelligence
-- ✅ **Three-Layer Pipeline:** Keyword → Fuzzy → Structural.
-- ✅ **Constraint Awareness:** Detects phone number formats and email types.
-- ✅ **Adaptive Learning:** Learns from user corrections in real-time.
-- ✅ **Disambiguation:** Knows the difference between "10th Board" and "12th Board" based on context.
+**Tested on:** Google Forms · Microsoft Forms · Greenhouse · Lever · Workday · Any standard HTML `<form>`
 
-### 🎨 UI / UX
-- ✅ **Cozy Organic Theme:** Sage green accents, warm beige backgrounds.
-- ✅ **Visual Feedback:** 5px side-line indicators and subtle ghost-tint backgrounds.
-- ✅ **Real-time Status:** Shows exactly how many fields were filled vs. skipped.
-- ✅ **Highlight Clearing:** One-click removal of all visual highlights.
-- ✅ **Flexible Profile:** No mandatory fields — fill only what you need, save anytime.
-- ✅ **Settings & Whitelist Management:** Full domain management in the Options page.
+### 🧠 Four-Layer Matching Engine
+Forma uses a sophisticated pipeline to match each form label to the right profile field:
 
-### 🔒 Privacy & Performance
-- ✅ **Local-Only Storage:** All profile data stays on your machine (`chrome.storage.local`).
-- ✅ **Manifest V3:** Compliant with the latest secure extension standards.
-- ✅ **Zero Latency:** No external API calls; matching happens instantly in-browser.
-- ✅ **Zero Bloat:** Bundled with **esbuild** for a tiny, fast footprint.
+| Layer | Method | Example |
+|-------|--------|---------|
+| **1. Keyword** | Direct label matching with synonyms | "First Name" → `name.first` |
+| **2. Fuzzy** | Fuse.js-powered approximate matching | "Enrolment No." → `academic.enrollment` |
+| **3. Structural** | Constraint detection from context | "Phone (without country code)" → strips `+91` |
+| **4. AI (v2.0)** | Gemini Nano semantic key-mapping | "Guardian's Email" → null (no data = no guess) |
+
+### 🤖 Local AI Engine (v2.0 — Gemini Nano)
+When the keyword and fuzzy matchers can't find a match, Forma sends the remaining labels to Chrome's **built-in Gemini Nano model** for semantic key-mapping. The AI maps each label to the exact profile key it corresponds to — or returns `null` if there's no match. This means:
+
+- **No hallucinated data** — The AI only maps keys, it never invents values
+- **Identity bleed protection** — Bidirectional guard prevents "Father's Phone" from getting your phone number (or vice versa)
+- **Strict key validation** — Every AI suggestion is verified against the actual profile keys before being accepted
+- **2-minute timeout** — If the AI takes too long, the pipeline gracefully degrades to skip-mode
+- **100% local** — Runs entirely on Chrome's built-in model, no network requests
+
+### 📚 Adaptive Learning
+When you manually correct a field that Forma filled incorrectly (or missed), Forma detects the change, performs a reverse-lookup into your profile, and asks if it should **remember that mapping** for all future forms.
+
+### 🎨 The "Cozy Organic" Interface
+Forma's UI is designed to feel warm, tactile, and premium — not sterile and boxy. Both the popup and the full-page profile editor use a **warm earthy palette** with sage green accents, smooth micro-animations, and a plaque-style design that feels approachable.
+
+Features include:
+- **Dark mode** with a single-click icon toggle (sun/moon)
+- **Real-time AI status toast** on the page ("Forma AI is processing..." → "Forma filled 12 / 15 fields")
+- **Visual field highlighting** — green for filled, amber for skipped
+- **Profile completeness ring** showing how much of your profile is filled
+- **Custom fields** for any data the preset categories don't cover
+
+### ⚡ Auto-Load System
+For sites you use frequently, enable **Autofill on page load** and add domains to your whitelist. Forma will automatically fill forms on those sites the moment the page loads — zero clicks required.
+
+### 📦 Import / Export
+Export your entire profile as a clean JSON file and import it on another machine. Custom fields are fully supported in the export format.
+
+### 🔒 Privacy Architecture
+- **Zero cloud dependency** — All data stored in `chrome.storage.local`
+- **No analytics, no telemetry** — Forma doesn't phone home
+- **No API keys** — The AI runs on Chrome's built-in model
+- **Manifest V3** — Latest secure extension standard
+- **Open source** — Every line of code is auditable
 
 ---
 
@@ -76,20 +135,30 @@ Forma moves away from sterile, boxy AI designs. The popup and options pages use 
 ```
 ┌───────────────────────────────────────────────────────────┐
 │                     CHROME EXTENSION                      │
-│  ┌──────────────┐      ┌──────────────┐      ┌─────────┐  │
-│  │    Popup     │ ◄─── │  Storage     │ ───► │ Options │  │
-│  │ (User UI)    │      │ (Local JSON) │      │ (Editor)│  │
-│  └──────────────┘      └──────────────┘      └─────────┘  │
-└──────────┬────────────────────────────────────────────────┘
-           │ Messaging API
-           ▼
+│  ┌──────────────┐      ┌──────────────┐      ┌─────────┐ │
+│  │    Popup     │ ◄──► │  Storage     │ ◄──► │ Options │ │
+│  │ (Quick UI)   │      │ (Local JSON) │      │ (Editor)│ │
+│  └──────┬───────┘      └──────────────┘      └─────────┘ │
+│         │ chrome.runtime.onMessage                        │
+└─────────┼─────────────────────────────────────────────────┘
+          ▼
 ┌───────────────────────────────────────────────────────────┐
 │                     CONTENT SCRIPT                        │
-│  ┌──────────────┐      ┌──────────────┐      ┌─────────┐  │
-│  │  Universal   │ ───► │ Smart Matcher│ ───► │ Filler  │  │
-│  │ DOM Parser   │      │ (Three-Layer)│      │ (Logic) │  │
-│  │ (W3C + SPA)  │      └──────────────┘      └─────────┘  │
-│  └──────────────┘                                         │
+│                                                           │
+│  ┌──────────────┐    ┌──────────────┐    ┌─────────────┐ │
+│  │  Universal   │──► │  4-Layer     │──► │  Adaptive   │ │
+│  │  DOM Parser  │    │  Matcher     │    │  Filler     │ │
+│  │ (W3C + SPA)  │    │              │    │ (Text/Radio │ │
+│  └──────────────┘    │  Keyword     │    │  /Dropdown) │ │
+│                      │  Fuzzy       │    └─────────────┘ │
+│                      │  Structural  │                     │
+│                      │  AI (Nano)   │◄── Gemini Nano API │
+│                      └──────────────┘    (On-Device)     │
+│                                                           │
+│  ┌──────────────┐    ┌──────────────┐                    │
+│  │ Highlighter  │    │  Learning    │                    │
+│  │ (Visual FB)  │    │  Watcher     │                    │
+│  └──────────────┘    └──────────────┘                    │
 └───────────────────────────────────────────────────────────┘
 ```
 
@@ -97,90 +166,157 @@ Forma moves away from sterile, boxy AI designs. The popup and options pages use 
 
 ## 🚀 Tech Stack
 
-| Layer | Technology | Rationale |
+| Layer | Technology | Purpose |
 |---|---|---|
-| **Core** | TypeScript | Type-safe form mapping and state management |
-| **Matching** | Fuse.js | High-performance fuzzy string searching |
-| **Build** | esbuild | Sub-millisecond bundling for fast development |
-| **Storage** | Chrome Storage API | Secure, per-profile local persistence |
-| **Styling** | Vanilla CSS + HSL | Maximum control over the "Cozy Organic" theme |
+| **Language** | TypeScript 5.0 | Type-safe form matching and profile management |
+| **AI** | Gemini Nano (Chrome built-in) | On-device semantic field mapping |
+| **Matching** | Fuse.js | High-performance fuzzy string search |
+| **Build** | esbuild | Sub-millisecond TypeScript bundling |
+| **Storage** | Chrome Storage API | Secure, local-only persistence |
+| **Styling** | Vanilla CSS + CSS Variables | Full control over the Cozy Organic theme |
+| **Extension** | Manifest V3 | Latest Chrome security standards |
 
 ---
 
-## ⚡ Setup & Installation
+## ⚡ Installation
 
-### 📥 Quick Install (For Users)
-If you aren't a developer, the easiest way to use Forma is via the ZIP release:
+### Chrome Web Store (Recommended)
+*Coming soon — pending review.*
 
-1. **Download:** Click the **[Download ZIP](https://github.com/chahalgoyal/FORMA/releases/latest)** badge at the top.
-2. **Extract:** Unzip the `forma-extension.zip` folder to a safe location.
-3. **Load in Chrome:** 
-   - Open Chrome and go to `chrome://extensions/`.
-   - Enable **Developer mode** (top-right).
-   - Click **Load unpacked** and select the folder you just extracted.
-4. **Pin it:** Click the puzzle icon in your browser and pin Forma.
+### Manual Install (Developer Mode)
+1. **Download** the [latest release](https://github.com/chahalgoyal/FORMA/releases/latest) ZIP
+2. **Extract** the ZIP to a permanent folder
+3. Open Chrome → `chrome://extensions/` → Enable **Developer mode**
+4. Click **Load unpacked** → Select the extracted folder
+5. **Pin** the Forma icon in your toolbar
 
----
+### AI Setup (Optional)
+The AI engine requires Chrome 128+ and two flags to be enabled:
+1. Navigate to `chrome://flags/#prompt-api-for-gemini-nano` → Set to **Enabled**
+2. Navigate to `chrome://flags/#optimization-guide-on-device-model` → Set to **Enabled BypassPerfRequirement**
+3. **Restart Chrome completely**
+4. Open Forma's Edit Profile → Settings → Enable AI → Click **⚡ Initialize & Wake Up AI**
+5. Go to `chrome://components` → Find **Optimization Guide On Device Model** → Click **Check for update**
 
-## 📖 How to Use
-
-### 1. Setup your Profile
-When you first install Forma, click **Edit Profile** in the extension popup to get started. You'll be taken to a dedicated Profile Studio page.
-
-### 2. Fill & Save Details
-Enter your academic and personal details in the "Cozy Organic" editor. There are no mandatory fields—fill out as much or as little as you want, and click **Save Profile** when you're done.
-
-### 3. Autofill Anywhere
-Open any supported form — **Google Forms, Microsoft Forms, Greenhouse, Lever, Workday**, or any standard HTML form — and click the **Autofill This Form** button in the Forma popup. You can also enable **Autofill on page load** for whitelisted domains using the toggle for a complete zero-click experience. Add new sites to the whitelist with one click from the popup.
-
-### 4. Review & Clear
-Forma will intelligently match and fill the form fields, highlighting them in a soft Sage Green so you can easily review what was changed. The popup will show you exactly how many fields were successfully filled or skipped. Once you've reviewed the form, you can clear the highlights with one click.
+> The model is ~2 GB and downloads in the background. Forma works perfectly fine without AI enabled — the keyword + fuzzy matchers handle the vast majority of fields.
 
 ---
 
-### 🛠️ Developer Setup (For Contributors)
+## 📖 Usage
+
+### 1. Set Up Your Profile
+Click the Forma icon → **Edit Profile**. Fill in your details across the categorized sections: Personal, Contact, Academic, Placement. No field is mandatory — fill only what you need.
+
+### 2. Add Custom Fields
+For data that doesn't fit the preset categories (e.g., "Father's Name", "Aadhar Number"), add **Custom Fields** in the Settings tab. These are included in AI mapping.
+
+### 3. Autofill Any Form
+Navigate to any form and click **Autofill This Form** in the popup. Watch as fields light up green (filled) or amber (skipped).
+
+### 4. Enable Auto-Load
+For forms you fill frequently, toggle **Autofill on page load** and click **Enable Auto-Load for this site**. Forma will fill forms automatically on those domains.
+
+### 5. Review & Submit
+Always review AI-filled fields before submitting — the popup shows a warning when AI was used. Highlighted fields make it easy to spot what was changed.
+
+---
+
+## 🛠️ Developer Setup
+
 ```bash
-# 1. Clone the repository
+# Clone the repository
 git clone https://github.com/chahalgoyal/FORMA.git
+cd FORMA
 
-# 2. Install dependencies
+# Install dependencies
 npm install
 
-# 3. Build the extension
+# Build the extension
 npm run build
 ```
-Load into Chrome: Go to `chrome://extensions/` → Enable **Developer mode** → **Load unpacked** → Select the project root folder (not the `dist` folder).
+
+Load into Chrome: `chrome://extensions/` → Enable **Developer mode** → **Load unpacked** → Select the project root folder.
+
+### Project Structure
+```
+forma/
+├── src/
+│   ├── content/          # Content script (DOM parser, filler, highlighter)
+│   ├── core/
+│   │   ├── ai/           # Gemini Nano integration (aiManager.ts)
+│   │   ├── filler/       # Text, radio, dropdown fillers
+│   │   ├── matcher/      # Keyword + fuzzy matching engine
+│   │   ├── parser/       # Name parser utilities
+│   │   └── storage/      # Chrome storage manager
+│   ├── background/       # Service worker (message relay)
+│   ├── popup/            # Extension popup (HTML + CSS + TS)
+│   ├── options/          # Full-page profile editor
+│   ├── types/            # Shared TypeScript interfaces
+│   └── utils/            # Constants, helpers, selectors
+├── assets/               # Icons, logos
+├── manifest.json         # Extension manifest (MV3)
+├── build.mjs             # esbuild bundler script
+└── package.json
+```
 
 ---
 
 ## 📋 Changelog
 
+### v2.0.0 — AI Integration & UX Overhaul
+- **Gemini Nano AI Engine:** Local, on-device semantic field mapping for labels the keyword matcher can't reach
+- **Key-Mapping Architecture:** AI maps form labels to profile keys (not values), preventing hallucinated data
+- **Identity Bleed Protection:** Bidirectional guard against cross-mapping personal and relative data
+- **2-Minute AI Timeout:** Graceful degradation if the model takes too long
+- **On-Page Toast Notifications:** Real-time feedback during AI processing ("Forma filled 12 / 15 fields")
+- **Instant Popup Updates:** Real-time broadcast via `chrome.runtime.onMessage` (replaces polling)
+- **AI Processing Loader:** Spinner in popup during AI inference
+- **Custom Fields:** User-defined key-value pairs included in AI mapping
+- **AI Disclaimer:** Warning banner when AI-filled fields need review
+- **Theme-Aware Toast:** Page notifications match light/dark mode
+- **Dark Mode Icon Button:** Premium sun/moon toggle matching options page
+- **Feedback Link:** Direct GitHub issue reporting from popup footer
+- **Import/Export:** Full support for custom fields in JSON profile exports
+
 ### v1.2.0 — Platform Independence
-- **Universal Semantic Parser:** Replaced the Google Forms-specific DOM parser with a W3C accessibility-based engine that works on any HTML form.
-- **Platform Support:** Now supports Google Forms, Microsoft Forms, Greenhouse, Lever, Workday, and generic HTML forms out of the box.
-- **SPA Retry:** Added MutationObserver-based detection for React/Angular SPA forms that render inputs asynchronously.
-- **Whitelisted Auto-Load:** Auto-fill on page load is now restricted to user-approved domains, with a pre-seeded default list.
-- **Quick-Add in Popup:** One-click button to add/remove the current site from the auto-load whitelist.
-- **Settings Tab:** New "Settings & Whitelist" section in the Options page for managing approved domains.
-- **Expanded Keywords:** Added `telephone`, `student id`, `man`/`woman` gender mappings for broader compatibility.
+- **Universal Semantic Parser:** W3C accessibility-based engine replacing Google Forms-specific parsing
+- **Platform Support:** Google Forms, Microsoft Forms, Greenhouse, Lever, Workday, any HTML form
+- **SPA Retry:** MutationObserver-based detection for async-rendered forms
+- **Whitelisted Auto-Load:** Domain-restricted autofill on page load
+- **Quick-Add Popup:** One-click whitelist toggle
 
-### v1.1.0 — UI Polish & Precision Updates
-- **Visual Overhaul:** Refined the "Cozy Organic" UI to perfectly align the new branding and typography without layout distortions.
-- **Improved Iconography:** Cleaned up transparent padding on the extension icon to ensure perfect visibility in the Chrome toolbar.
-- **Enhanced Matcher Logic:** Polished handling of ambiguous slash-separated fields.
-- **Automated Bundling:** Streamlined the build pipeline for faster developer iterations and pristine ZIP output.
-
-### v1.0.1 — User Feedback Release
-- **No mandatory fields** — All profile fields are now optional. Fill only what you need, save anytime. Empty fields are gracefully skipped during autofill.
-- **Soft validation** — Phone number format is validated only when you actually enter a phone number.
-- **Housekeeping** — Build artifacts (`.zip`) removed from version control.
+### v1.1.0 — UI Polish & Precision
+- **Visual Overhaul:** Refined "Cozy Organic" UI with typography alignment
+- **Improved Iconography:** Cleaned transparent padding on extension icon
+- **Enhanced Matcher:** Better handling of slash-separated fields
+- **Automated Bundling:** Streamlined build pipeline
 
 ### v1.0.0 — Initial Release
 - Three-layer matching engine (Keyword → Fuzzy → Structural)
 - Adaptive learning from user corrections
 - Constraint-aware filling (phone formats, email types)
-- Cozy Organic theme with warm, earthy palette
+- Cozy Organic theme
 - Privacy-first, local-only storage
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! If you'd like to contribute:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feat/your-feature`)
+3. Commit your changes (`git commit -m 'feat: add your feature'`)
+4. Push to the branch (`git push origin feat/your-feature`)
+5. Open a Pull Request
+
+For bug reports, please [open an issue](https://github.com/chahalgoyal/FORMA/issues/new).
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](./LICENSE).
 
 ---
 
