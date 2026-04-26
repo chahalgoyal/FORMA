@@ -1,5 +1,5 @@
 <div align="center">
-<img src="./assets/logo-light.png" width="80" alt="Forma Logo" />
+<img src="./assets/logo-light.png" width="200" alt="Forma Logo" />
 
 # FORMA
 
