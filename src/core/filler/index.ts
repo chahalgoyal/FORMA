@@ -125,17 +125,22 @@ function formatDob(isoDate: string): string {
 export async function fill(
   inputElements: Element[],
   fieldType: FieldType,
-  matchResult: MatchResult,
+  matchResult: MatchResult | string,
   profile: FormaProfile,
   settings: FormaSettings = DEFAULT_SETTINGS,
   container?: Element
 ): Promise<boolean> {
-  const value = resolveProfileValue(matchResult, profile, container);
+  const value = typeof matchResult === 'string'
+    ? matchResult
+    : resolveProfileValue(matchResult, profile, container);
 
   // Empty value = nothing to fill
   if (!value) {
+    const keyLabel = typeof matchResult === 'string'
+      ? `AI value "${matchResult}"`
+      : `Profile key "${matchResult.profileKey}"`;
     console.debug(
-      `[Forma] Profile key "${matchResult.profileKey}" resolved to empty value. Skipping.`
+      `[Forma] ${keyLabel} resolved to empty value. Skipping.`
     );
     return false;
   }

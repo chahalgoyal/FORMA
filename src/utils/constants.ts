@@ -34,6 +34,7 @@ export const DEFAULT_SETTINGS: FormaSettings = {
     'jobs.lever.co',
     'myworkdayjobs.com',
   ],
+  enableAi: false,
 };
 
 // ─── DOM Selectors ───────────────────────────

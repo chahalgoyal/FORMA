@@ -56,6 +56,12 @@ export interface FormaProfile {
     activeBacklog: 'Yes' | 'No' | '';
     backlogCount: string;
   };
+  customFields?: CustomField[];
+}
+
+export interface CustomField {
+  label: string;
+  value: string;
 }
 
 // ─── Settings ────────────────────────────────
@@ -67,6 +73,7 @@ export interface FormaSettings {
   highlightFilled: string;
   highlightSkipped: string;
   whitelistedDomains: string[];
+  enableAi: boolean;
 }
 
 // ─── Learned Mappings ────────────────────────
