@@ -4,8 +4,9 @@
 // export, import, section nav, completeness
 // ──────────────────────────────────────────────
 
-import type { FormaProfile } from '../types/index.js';
+import type { FormaProfile, CustomField } from '../types/index.js';
 import { getProfile, saveProfile, clearAll, getSettings, saveSettings } from '../core/storage/storageManager.js';
+import { checkAiStatus, triggerModelDownload } from '../core/ai/aiManager.js';
 
 // ─── DOM Mappings ────────────────────────────
 // Maps DOM input IDs to their profile key paths
@@ -72,6 +73,17 @@ const backlogCountGroup = document.getElementById('backlog-count-group')!;
 const backlogCountInput = document.getElementById('backlog-count') as HTMLInputElement;
 const toastMessage = document.getElementById('toast-message')!;
 const whitelistTextarea = document.getElementById('whitelist-textarea') as HTMLTextAreaElement;
+
+// AI Setting elements
+const enableAiCheckbox = document.getElementById('enable-ai') as HTMLInputElement;
+const aiStatusContainer = document.getElementById('ai-status-container') as HTMLDivElement;
+const aiSetupGuide = document.getElementById('ai-setup-guide') as HTMLDivElement;
+const customFieldsSection = document.getElementById('custom-fields-section') as HTMLDivElement;
+const customFieldsContainer = document.getElementById('custom-fields-container') as HTMLDivElement;
+const btnAddCustomField = document.getElementById('btn-add-custom-field') as HTMLButtonElement;
+const btnDownloadAiModel = document.getElementById('btn-download-ai-model') as HTMLButtonElement;
+const aiDownloadStatus = document.getElementById('ai-download-status') as HTMLDivElement;
+const chromeLinkBtns = document.querySelectorAll('.chrome-link-btn');
 
 // DOB elements
 const dobDisplay = document.getElementById('dob-display') as HTMLInputElement;
@@ -242,7 +254,191 @@ async function loadProfile(): Promise<void> {
   if (settings.whitelistedDomains) {
     whitelistTextarea.value = settings.whitelistedDomains.join('\n');
   }
+  
+  if (settings.enableAi) {
+    enableAiCheckbox.checked = true;
+  }
+  await updateAiStatusUI();
 }
+
+// ─── AI Settings Logic ───────────────────────
+
+async function updateAiStatusUI(): Promise<void> {
+  const isEnabled = enableAiCheckbox.checked;
+  aiStatusContainer.style.display = isEnabled ? 'block' : 'none';
+  aiSetupGuide.style.display = 'none';
+  customFieldsSection.style.display = 'none';
+
+  if (!isEnabled) return;
+
+  aiStatusContainer.textContent = 'Checking AI Status...';
+  aiStatusContainer.style.backgroundColor = 'var(--bg-secondary)';
+  aiStatusContainer.style.color = 'var(--text-secondary)';
+
+  const status = await checkAiStatus();
+
+  if (status === 'unsupported') {
+    // Flags not enabled or Chrome too old
+    aiStatusContainer.innerHTML = '❌ <b>AI Unsupported</b>: Your browser needs setup. Follow the guide below.';
+    aiStatusContainer.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+    aiStatusContainer.style.color = '#b91c1c';
+    aiSetupGuide.style.display = 'block';
+
+  } else if (status === 'downloading') {
+    // Flags are enabled, Chrome is already downloading in the background
+    aiStatusContainer.innerHTML = '⏳ <b>Model Downloading (~2 GB)</b>: Chrome is downloading Gemini Nano. See Step 6 below to force the download if it seems stuck.';
+    aiStatusContainer.style.backgroundColor = 'rgba(245, 158, 11, 0.1)';
+    aiStatusContainer.style.color = '#b45309';
+    aiSetupGuide.style.display = 'block';
+    // Auto-poll until ready
+    startDownloadPoller();
+
+  } else if (status === 'needs-download') {
+    // Flags are enabled but download hasn't started yet
+    aiStatusContainer.innerHTML = '⬇️ <b>Download Required</b>: Click the button below to start downloading the AI model (~2 GB).';
+    aiStatusContainer.style.backgroundColor = 'rgba(245, 158, 11, 0.1)';
+    aiStatusContainer.style.color = '#b45309';
+    aiSetupGuide.style.display = 'block';
+
+  } else if (status === 'ready') {
+    aiStatusContainer.innerHTML = '✅ <b>AI Ready</b>: The Semantic Engine is loaded and ready to assist.';
+    aiStatusContainer.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+    aiStatusContainer.style.color = '#047857';
+    customFieldsSection.style.display = 'block';
+  }
+}
+
+let _pollTimer: ReturnType<typeof setInterval> | null = null;
+
+function startDownloadPoller(): void {
+  // Don't start multiple pollers
+  if (_pollTimer) return;
+  _pollTimer = setInterval(async () => {
+    const status = await checkAiStatus();
+    if (status === 'ready') {
+      clearInterval(_pollTimer!);
+      _pollTimer = null;
+      await updateAiStatusUI();
+    } else if (status === 'unsupported') {
+      clearInterval(_pollTimer!);
+      _pollTimer = null;
+      await updateAiStatusUI();
+    }
+    // If still 'downloading', keep polling
+  }, 15000);
+}
+
+enableAiCheckbox.addEventListener('change', updateAiStatusUI);
+
+// Download AI Model button handler
+btnDownloadAiModel.addEventListener('click', async () => {
+  btnDownloadAiModel.disabled = true;
+  btnDownloadAiModel.textContent = '⏳ Checking...';
+  aiDownloadStatus.textContent = '';
+
+  const status = await checkAiStatus();
+
+  if (status === 'unsupported') {
+    btnDownloadAiModel.disabled = false;
+    btnDownloadAiModel.textContent = '⚡ Initialize & Wake Up AI';
+    aiDownloadStatus.textContent = '❌ API not detected. Make sure both flags are Enabled and you fully restarted Chrome.';
+    aiDownloadStatus.style.color = '#b91c1c';
+    return;
+  }
+
+  if (status === 'ready') {
+    aiDownloadStatus.textContent = '✅ Model already downloaded! Refreshing status...';
+    aiDownloadStatus.style.color = '#047857';
+    await updateAiStatusUI();
+    return;
+  }
+
+  if (status === 'downloading') {
+    btnDownloadAiModel.textContent = '⚡ Waking Up...';
+    aiDownloadStatus.innerHTML = '✅ Signal sent! Now go to <code style="background: var(--bg-secondary); padding: 2px 4px; border-radius: 4px;">chrome://components</code> (Step 6).';
+    aiDownloadStatus.style.color = '#047857';
+    startDownloadPoller();
+    return;
+  }
+
+  // status === 'needs-download' — trigger it manually
+  btnDownloadAiModel.textContent = '⚡ Waking Up...';
+  aiDownloadStatus.innerHTML = '✅ Signal sent! Now go to <code style="background: var(--bg-secondary); padding: 2px 4px; border-radius: 4px;">chrome://components</code> (Step 6).';
+  aiDownloadStatus.style.color = '#047857';
+  await triggerModelDownload();
+  startDownloadPoller();
+});
+
+// Wire up chrome internal links
+chromeLinkBtns.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    const url = (e.target as HTMLElement).getAttribute('data-url');
+    if (url) {
+      chrome.tabs.create({ url });
+    }
+  });
+});
+
+// ─── Custom Fields Logic ─────────────────────
+
+function renderCustomFieldRow(label = '', value = ''): HTMLDivElement {
+  const row = document.createElement('div');
+  row.style.cssText = 'display: flex; gap: 8px; margin-bottom: 8px; align-items: center;';
+
+  const labelInput = document.createElement('input');
+  labelInput.type = 'text';
+  labelInput.className = 'field-input';
+  labelInput.placeholder = 'Field Name (e.g., Father\'s Name)';
+  labelInput.value = label;
+  labelInput.style.flex = '1';
+
+  const valueInput = document.createElement('input');
+  valueInput.type = 'text';
+  valueInput.className = 'field-input';
+  valueInput.placeholder = 'Value';
+  valueInput.value = value;
+  valueInput.style.flex = '1';
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.textContent = '✕';
+  removeBtn.style.cssText = 'background: none; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; padding: 6px 10px; color: var(--text-secondary); font-size: 14px;';
+  removeBtn.addEventListener('click', () => row.remove());
+
+  row.appendChild(labelInput);
+  row.appendChild(valueInput);
+  row.appendChild(removeBtn);
+  return row;
+}
+
+function getCustomFieldsFromUI(): CustomField[] {
+  const rows = customFieldsContainer.querySelectorAll('div');
+  const fields: CustomField[] = [];
+  rows.forEach((row) => {
+    const inputs = row.querySelectorAll('input');
+    if (inputs.length >= 2) {
+      const label = inputs[0].value.trim();
+      const value = inputs[1].value.trim();
+      if (label && value) {
+        fields.push({ label, value });
+      }
+    }
+  });
+  return fields;
+}
+
+function loadCustomFields(customFields?: CustomField[]): void {
+  customFieldsContainer.innerHTML = '';
+  if (customFields && customFields.length > 0) {
+    for (const cf of customFields) {
+      customFieldsContainer.appendChild(renderCustomFieldRow(cf.label, cf.value));
+    }
+  }
+}
+
+btnAddCustomField.addEventListener('click', () => {
+  customFieldsContainer.appendChild(renderCustomFieldRow());
+});
 
 /**
  * Populates all form fields from a profile object.
@@ -276,6 +472,9 @@ function populateFormFromProfile(profile: FormaProfile): void {
 
   // Show/hide backlog count
   updateBacklogVisibility();
+
+  // Load custom fields
+  loadCustomFields(profile.customFields);
 
   // Update completeness
   updateCompleteness();
@@ -340,7 +539,12 @@ async function handleSave(e: Event): Promise<void> {
   setNestedValue(profileObj, ['placement', 'activeBacklog'], getSelectedBacklog());
   setNestedValue(profileObj, ['placement', 'backlogCount'], backlogCountInput.value || '0');
 
-  await saveProfile(profileObj as unknown as FormaProfile);
+  // Add custom fields
+  const customFields = getCustomFieldsFromUI();
+  const fullProfile = profileObj as unknown as FormaProfile;
+  fullProfile.customFields = customFields.length > 0 ? customFields : undefined;
+
+  await saveProfile(fullProfile);
 
   // Save Settings
   const settings = await getSettings();
@@ -349,6 +553,7 @@ async function handleSave(e: Event): Promise<void> {
     .map(line => line.trim().toLowerCase())
     .filter(line => line.length > 0);
   settings.whitelistedDomains = domains;
+  settings.enableAi = enableAiCheckbox.checked;
   await saveSettings(settings);
 
   showToast('Profile and Settings saved successfully! ✓', 'success');
@@ -380,7 +585,13 @@ async function handleClear(): Promise<void> {
  * Recursively strips empty strings and empty objects
  * to produce a clean, sparse JSON for export.
  */
-function stripEmpty(obj: Record<string, unknown>): Record<string, unknown> | null {
+function stripEmpty(obj: Record<string, unknown> | unknown[]): any {
+  if (Array.isArray(obj)) {
+    const arr = obj.map(item => typeof item === 'object' && item !== null ? stripEmpty(item as Record<string, unknown>) : item)
+                   .filter(item => item !== null && item !== '');
+    return arr.length > 0 ? arr : null;
+  }
+
   const result: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(obj)) {
@@ -424,6 +635,12 @@ function handleExport(): void {
   const backlogCount = backlogCountInput.value;
   if (backlogCount && backlogCount !== '0') {
     setNestedValue(profileObj, ['placement', 'backlogCount'], backlogCount);
+  }
+
+  // Custom Fields
+  const customFields = getCustomFieldsFromUI();
+  if (customFields && customFields.length > 0) {
+    profileObj['customFields'] = customFields;
   }
 
   // Strip any remaining empties

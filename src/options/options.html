@@ -354,6 +354,99 @@
               <p class="section-description">Manage your extension settings and control which websites are allowed to Auto-Load the autofill script.</p>
             </div>
 
+            <!-- AI Engine Toggle -->
+            <div class="settings-group">
+              <h3 class="group-title">AI Matching Engine (Beta)</h3>
+              <p class="section-description" style="margin-bottom: 12px; margin-top: 0;">
+                Use Chrome's built-in Local AI (Gemini Nano) for smarter, semantic form matching. Everything runs 100% locally on your device.
+              </p>
+              
+              <div class="checkbox-group" style="align-items: center; display: flex; gap: 12px; margin-bottom: 8px;">
+                <label class="switch">
+                  <input type="checkbox" id="enable-ai" name="enableAi">
+                  <span class="slider"></span>
+                </label>
+                <span>Enable AI Engine</span>
+              </div>
+              
+              <div id="ai-status-container" style="display: none; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 500;">
+                <!-- Filled dynamically by JS -->
+              </div>
+
+              <!-- AI Setup Guide (shown when unsupported) -->
+              <div id="ai-setup-guide" style="display: none; margin-top: 16px;">
+                <details style="border: 1px solid var(--border); border-radius: 10px; overflow: hidden;">
+                  <summary style="padding: 12px 16px; cursor: pointer; font-weight: 600; font-size: 13px; background: var(--bg-secondary); user-select: none;">
+                    📋 How to Enable Local AI (Step-by-Step)
+                  </summary>
+                  <div style="padding: 16px; font-size: 12.5px; line-height: 1.7;">
+                    <p style="margin: 0 0 4px; font-weight: 600;">Step 1 — Check your Chrome version</p>
+                    <p style="margin: 0 0 4px;">You need <b>Chrome 127</b> or newer. Check yours at:</p>
+                    <div style="display: flex; gap: 8px; margin-bottom: 14px; align-items: center;">
+                      <code style="flex: 1; padding: 6px 10px; border-radius: 6px; background: var(--bg-secondary); user-select: all; font-size: 11.5px; margin: 0;">chrome://settings/help</code>
+                      <button type="button" class="btn btn-secondary chrome-link-btn" data-url="chrome://settings/help" style="font-size: 11px; padding: 6px 10px; flex-shrink: 0;">Open ↗</button>
+                    </div>
+
+                    <p style="margin: 0 0 4px; font-weight: 600;">Step 2 — Enable the Prompt API flag</p>
+                    <p style="margin: 0 0 4px;">Set it to <b>Enabled</b>:</p>
+                    <div style="display: flex; gap: 8px; margin-bottom: 14px; align-items: center;">
+                      <code style="flex: 1; padding: 6px 10px; border-radius: 6px; background: var(--bg-secondary); user-select: all; font-size: 11.5px; margin: 0;">chrome://flags/#prompt-api-for-gemini-nano</code>
+                      <button type="button" class="btn btn-secondary chrome-link-btn" data-url="chrome://flags/#prompt-api-for-gemini-nano" style="font-size: 11px; padding: 6px 10px; flex-shrink: 0;">Open ↗</button>
+                    </div>
+
+                    <p style="margin: 0 0 4px; font-weight: 600;">Step 3 — Enable On-Device Model</p>
+                    <p style="margin: 0 0 4px;">Set it to <b>Enabled BypassPerfRequirement</b>:</p>
+                    <div style="display: flex; gap: 8px; margin-bottom: 14px; align-items: center;">
+                      <code style="flex: 1; padding: 6px 10px; border-radius: 6px; background: var(--bg-secondary); user-select: all; font-size: 11.5px; margin: 0;">chrome://flags/#optimization-guide-on-device-model</code>
+                      <button type="button" class="btn btn-secondary chrome-link-btn" data-url="chrome://flags/#optimization-guide-on-device-model" style="font-size: 11px; padding: 6px 10px; flex-shrink: 0;">Open ↗</button>
+                    </div>
+
+                    <p style="margin: 0 0 4px; font-weight: 600;">Step 4 — Restart Chrome</p>
+                    <p style="margin: 0 0 10px;">Close <b>all</b> Chrome windows completely (use Cmd+Q on Mac) and reopen the browser. Come back to this page.</p>
+
+                    <p style="margin: 0 0 4px; font-weight: 600;">Step 5 — Wake Up the AI API</p>
+                    <p style="margin: 0 0 10px;">Click this button to force Chrome to recognize the new flags:</p>
+                    <button type="button" id="btn-download-ai-model" class="btn btn-primary" style="font-size: 12px; padding: 8px 18px; width: 100%;">
+                      ⚡ Initialize & Wake Up AI
+                    </button>
+                    <div id="ai-download-status" style="margin-top: 8px; margin-bottom: 14px; font-size: 12px; color: var(--text-secondary); text-align: center;"></div>
+
+                    <p style="margin: 0 0 4px; font-weight: 600;">Step 6 — Download the Model (~2 GB)</p>
+                    <p style="margin: 0 0 4px;">Find <b>"Optimization Guide On Device Model"</b>:</p>
+                    <div style="display: flex; gap: 8px; margin-bottom: 4px; align-items: center;">
+                      <code style="flex: 1; padding: 6px 10px; border-radius: 6px; background: var(--bg-secondary); user-select: all; font-size: 11.5px; margin: 0;">chrome://components</code>
+                      <button type="button" class="btn btn-secondary chrome-link-btn" data-url="chrome://components" style="font-size: 11px; padding: 6px 10px; flex-shrink: 0;">Open ↗</button>
+                    </div>
+                    <p style="margin: 0 0 14px;">Click <b>"Check for update"</b> and wait until it says <b>"Up-to-date"</b>. (It might say "Downloading" for a few minutes).</p>
+
+                    <p style="margin: 0 0 4px; font-weight: 600;">Step 7 — Done!</p>
+                    <p style="margin: 0;">Once downloaded, toggle the AI Engine off and back on here. It should say <b>✅ AI Ready</b>.</p>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            <!-- Custom Fields (AI-only) -->
+            <div id="custom-fields-section" style="display: none;">
+              <hr style="border: 0; border-top: 1px solid var(--border); margin: 24px 0;" />
+              <div class="settings-group">
+                <h3 class="group-title">🧩 Custom Fields</h3>
+                <p class="section-description" style="margin-bottom: 12px; margin-top: 0;">
+                  Add fields not in the default profile (e.g., Father's Name, Blood Group). The AI will semantically match these to form fields.
+                </p>
+                
+                <div id="custom-fields-container">
+                  <!-- Dynamic rows rendered by JS -->
+                </div>
+
+                <button type="button" id="btn-add-custom-field" class="btn btn-secondary" style="margin-top: 10px; font-size: 12px; padding: 6px 14px;">
+                  + Add Field
+                </button>
+              </div>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 24px 0;" />
+
             <div class="fields-grid" style="grid-template-columns: 1fr;">
               <div class="field-group">
                 <label for="whitelist-textarea" class="field-label">Auto-Load Whitelist (one domain per line)</label>
