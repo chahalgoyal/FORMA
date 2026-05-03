@@ -5,7 +5,7 @@
   </h1>
   <h3>AI-Powered, Privacy-First Autofill for Students</h3>
 
-[![Version](https://img.shields.io/badge/Version-2.0.0-blue?style=for-the-badge)](https://github.com/chahalgoyal/FORMA/releases/latest)
+[![Version](https://img.shields.io/badge/Version-2.0.2-blue?style=for-the-badge)](https://github.com/chahalgoyal/FORMA/releases/latest)
 [![Chrome Web Store](https://img.shields.io/badge/Chrome-Web%20Store-4285F4?style=for-the-badge&logo=google-chrome)](https://chromewebstore.google.com)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-orange?style=for-the-badge&logo=google-chrome)](https://developer.chrome.com/docs/extensions/mv3)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
@@ -262,6 +262,16 @@ forma/
 ---
 
 ## 📋 Changelog
+
+### v2.0.2 — Stability & Matching Audit
+- **React-Safe Fillers:** Ghost fill bug resolved using native setters for text, radio, and select inputs
+- **Phone Truncation:** Fixed an issue where international phone numbers were corrupted on field length limits
+- **Dropdown Race Conditions:** Patched with a 50ms polling loop and ARIA-controls scoping
+- **DOM Parser:** Heading fallback strictly guarded to prevent mislabeling
+- **Fuzzy Matcher Hardening:** Prefix threshold tightened (2→3 chars) and ambiguity guard added to route neck-and-neck scores to AI
+- **Duplicate-Key Guard:** Prevents the same profile data from ghosting across multiple fields
+- **API Warning Suppression:** Chrome LanguageModel API missing-language warning suppressed by routing checks to the Service Worker and probing with `create()`
+- **Expanded Vocab:** Added 8 new poison words (e.g., nominee, referee) and 12 stop words for higher matching precision
 
 ### v2.0.0 — AI Integration & UX Overhaul
 - **Gemini Nano AI Engine:** Local, on-device semantic field mapping for labels the keyword matcher can't reach
