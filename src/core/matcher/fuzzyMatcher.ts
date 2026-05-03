@@ -21,6 +21,8 @@ const POISON_WORDS = new Set([
   'emergency', 'manager', 'referral', 'hr', 'supervisor',
   'company', 'organization', 'employer', 'team', 'event',
   'project', 'mentor', 'friend', 'sibling',
+  'wife', 'husband', 'nominee', 'referee', 'reference',
+  'representative', 'witness', 'interviewer',
 ]);
 
 // Build the flattened pattern list using BoW
@@ -72,9 +74,28 @@ export function fuzzyMatch(
     return null;
   }
 
+  // ── Guard 3: Ambiguity check ──
+  // If the top 2 results map to DIFFERENT profile key groups (e.g.,
+  // academic.tenth vs academic.twelfth) and their scores are within 0.05,
+  // the match is ambiguous — reject and let AI handle it.
+  if (results.length >= 2 && results[1].score !== undefined) {
+    const scoreDiff = results[1].score - results[0].score;
+    const key1 = results[0].item.profileKey;
+    const key2 = results[1].item.profileKey;
+    // Compare the parent group (everything before the last dot)
+    const group1 = key1.substring(0, key1.lastIndexOf('.'));
+    const group2 = key2.substring(0, key2.lastIndexOf('.'));
+    if (group1 !== group2 && scoreDiff < 0.05) {
+      console.debug(
+        `[Forma] Fuzzy ambiguity: "${labelBoW}" → "${key1}" (${results[0].score.toFixed(3)}) vs "${key2}" (${results[1].score.toFixed(3)}). Skipping.`
+      );
+      return null;
+    }
+  }
+
   const best = results[0];
 
-  // ── Guard 3: Token overlap validation ──
+  // ── Guard 4: Token overlap validation ──
   // Verify that the label's tokens are actually related to the pattern.
   // A token is "related" if it exactly matches OR shares a 3+ char prefix
   // with any pattern token (handles typos like "prmary" → "primary").
@@ -84,15 +105,16 @@ export function fuzzyMatch(
   function isTokenRelated(labelToken: string): boolean {
     for (const pt of patternTokens) {
       if (labelToken === pt) return true;
-      // Check if they share a common prefix of at least 2 chars
+      // Check if they share a common prefix of at least 3 chars
+      // (2 is too loose: "email"↔"emergency", "phone"↔"photo")
       const minLen = Math.min(labelToken.length, pt.length);
-      if (minLen >= 2) {
+      if (minLen >= 3) {
         let shared = 0;
         for (let i = 0; i < minLen; i++) {
           if (labelToken[i] === pt[i]) shared++;
           else break;
         }
-        if (shared >= 2) return true;
+        if (shared >= 3) return true;
       }
     }
     return false;

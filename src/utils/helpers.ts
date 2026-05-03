@@ -146,10 +146,12 @@ const STOP_WORDS = new Set([
   'for', 'to', 'and', 'or', 'any',
   // Instruction verbs (common form preambles)
   'please', 'enter', 'provide', 'type', 'mention', 'share', 'paste',
+  'write', 'specify', 'fill', 'select', 'choose', 'given', 'state',
   // Form subject words (the user IS the student/candidate)
   'student', 'candidate', 'applicant', 'participant',
   // Noise qualifiers
   'detail', 'details', 'below', 'here', 'only', 'good',
+  'information', 'following', 'form', 'field', 'required',
 ]);
 
 /**

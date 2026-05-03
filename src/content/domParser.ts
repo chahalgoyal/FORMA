@@ -11,7 +11,8 @@ const TARGET_INPUTS = [
   'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="checkbox"])',
   'textarea',
   'select',
-  '[role="listbox"]', // Google Forms dropdown
+  '[role="listbox"]',           // Google Forms dropdown
+  '[contenteditable="true"]',   // Rich-text boxes (cover letters, etc.)
 ].join(', ');
 
 const TARGET_RADIOS = [
@@ -78,7 +79,10 @@ function resolveLabel(el: Element): string | null {
   }
 
   // 5. Fallback for stubborn sites (like Microsoft Forms)
-  // Walk up the DOM looking for a heading role, an <h1>-<h6>, or a strong text node
+  // Walk up the DOM looking for a heading — but ONLY assign it if the
+  // container holds exactly ONE target input. If it holds multiple,
+  // the heading is a section title (e.g., "Personal Information"), not
+  // a field label, and assigning it would confuse the AI.
   let current: Element | null = el.parentElement;
   let attempts = 0;
   
@@ -86,13 +90,13 @@ function resolveLabel(el: Element): string | null {
     // Check for explicit heading inside this container
     const heading = current.querySelector('h1, h2, h3, h4, h5, h6, [role="heading"]');
     if (heading && (heading as HTMLElement).innerText) {
-      return (heading as HTMLElement).innerText.trim();
-    }
-    
-    // If it's a Google Form container, it has a specific heading
-    const gFormHeading = current.querySelector('div[role="heading"]');
-    if (gFormHeading && (gFormHeading as HTMLElement).innerText) {
-       return (gFormHeading as HTMLElement).innerText.trim();
+      // Guard: only use this heading if this container has exactly 1 input
+      const inputsInContainer = current.querySelectorAll(TARGET_INPUTS);
+      if (inputsInContainer.length === 1) {
+        return (heading as HTMLElement).innerText.trim();
+      }
+      // Multiple inputs — this is a section header, not a field label.
+      // Continue walking up to find a more specific container.
     }
 
     current = current.parentElement;

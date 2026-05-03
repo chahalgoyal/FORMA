@@ -1,7 +1,7 @@
 {
   "name": "forma-extension",
-  "version": "1.2.0",
-  "description": "Smart autofill for placement and internship Google Forms.",
+  "version": "2.0.2",
+  "description": "Smart autofill for job portals, Microsoft Forms, and Google Forms.",
   "type": "module",
   "scripts": {
     "build": "node build.mjs",

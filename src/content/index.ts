@@ -16,7 +16,6 @@ import { match } from '../core/matcher/index.js';
 import { fill } from '../core/filler/index.js';
 import { injectHighlightStyles, applyHighlight, clearAllHighlights } from './highlighter.js';
 import { attachLearningListeners } from './learningWatcher.js';
-import { checkAiStatus, generateFillMapping } from '../core/ai/aiManager.js';
 
 // ──────────────────────────────────────────────
 // On-Page Toast Notification
@@ -214,6 +213,7 @@ async function runAutofill(): Promise<FormaResultPayload> {
 
   const results: FillResult[] = [];
   const unmatchedFields: typeof fields = [];
+  const usedProfileKeys = new Set<string>(); // Guard: prevent same key filling multiple fields
 
   for (const field of fields) {
     const matchResult = match(
@@ -225,6 +225,16 @@ async function runAutofill(): Promise<FormaResultPayload> {
 
     if (!matchResult) {
       // No keyword/fuzzy match — collect for AI pass
+      unmatchedFields.push(field);
+      continue;
+    }
+
+    // Duplicate-key guard: if this profile key was already used to fill
+    // another field, don't fill again — route to AI for a better answer.
+    if (usedProfileKeys.has(matchResult.profileKey)) {
+      console.debug(
+        `[Forma] "${field.rawLabel}" → matched "${matchResult.profileKey}" but key already used. Queued for AI.`
+      );
       unmatchedFields.push(field);
       continue;
     }
@@ -248,6 +258,7 @@ async function runAutofill(): Promise<FormaResultPayload> {
     }
 
     if (success) {
+      usedProfileKeys.add(matchResult.profileKey);
       applyHighlight(field.container, 'filled');
       results.push({
         rawLabel: field.rawLabel,
@@ -268,7 +279,11 @@ async function runAutofill(): Promise<FormaResultPayload> {
 
   // ── Step 4: AI Pass (only for unmatched fields) ──
   if (settings.enableAi && unmatchedFields.length > 0) {
-    const aiStatus = await checkAiStatus();
+    const aiStatusObj = await new Promise<{status: string}>((resolve) => 
+      chrome.runtime.sendMessage({ type: 'FORMA_AI_STATUS_REQUEST' }, resolve)
+    );
+    const aiStatus = aiStatusObj?.status;
+
     if (aiStatus === 'ready') {
       console.debug(
         `[Forma AI] Sending ${unmatchedFields.length} unmatched fields to AI...`
@@ -276,7 +291,14 @@ async function runAutofill(): Promise<FormaResultPayload> {
       isAiProcessing = true;
       await showPageToast('Forma AI is processing...', 'loading');
       const unmatchedLabels = unmatchedFields.map(f => f.rawLabel);
-      const aiMapping = await generateFillMapping(profile, unmatchedLabels);
+      
+      const aiMappingObj = await new Promise<{mapping: any}>((resolve) => 
+        chrome.runtime.sendMessage({ 
+          type: 'FORMA_AI_MAPPING_REQUEST', 
+          payload: { profile, unmatchedLabels } 
+        }, resolve)
+      );
+      const aiMapping = aiMappingObj?.mapping;
       isAiProcessing = false;
 
       if (aiMapping) {

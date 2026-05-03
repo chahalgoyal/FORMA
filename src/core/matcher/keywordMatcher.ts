@@ -25,6 +25,8 @@ const POISON_WORDS = [
   'emergency', 'manager', 'referral', 'hr', 'supervisor',
   'company', 'organization', 'employer', 'team', 'event',
   'project', 'mentor', 'friend', 'sibling',
+  'wife', 'husband', 'nominee', 'referee', 'reference',
+  'representative', 'witness', 'interviewer',
 ];
 
 export function keywordMatch(

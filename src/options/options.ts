@@ -6,7 +6,26 @@
 
 import type { FormaProfile, CustomField } from '../types/index.js';
 import { getProfile, saveProfile, clearAll, getSettings, saveSettings } from '../core/storage/storageManager.js';
-import { checkAiStatus, triggerModelDownload } from '../core/ai/aiManager.js';
+
+// AI status checks are routed through the service worker via messaging
+// to avoid Chrome's "No output language" warning appearing in the
+// extensions error panel (it fires in the SW context instead).
+async function checkAiStatusViaWorker(): Promise<'ready' | 'downloading' | 'needs-download' | 'unsupported'> {
+  try {
+    const response = await chrome.runtime.sendMessage({ type: 'FORMA_AI_STATUS_REQUEST' });
+    return response?.status ?? 'unsupported';
+  } catch {
+    return 'unsupported';
+  }
+}
+
+async function triggerModelDownloadViaWorker(): Promise<void> {
+  try {
+    await chrome.runtime.sendMessage({ type: 'FORMA_AI_DOWNLOAD_REQUEST' });
+  } catch {
+    // Silently ignore
+  }
+}
 
 // ─── DOM Mappings ────────────────────────────
 // Maps DOM input IDs to their profile key paths
@@ -275,7 +294,7 @@ async function updateAiStatusUI(): Promise<void> {
   aiStatusContainer.style.backgroundColor = 'var(--bg-secondary)';
   aiStatusContainer.style.color = 'var(--text-secondary)';
 
-  const status = await checkAiStatus();
+  const status = await checkAiStatusViaWorker();
 
   if (status === 'unsupported') {
     // Flags not enabled or Chrome too old
@@ -314,7 +333,7 @@ function startDownloadPoller(): void {
   // Don't start multiple pollers
   if (_pollTimer) return;
   _pollTimer = setInterval(async () => {
-    const status = await checkAiStatus();
+    const status = await checkAiStatusViaWorker();
     if (status === 'ready') {
       clearInterval(_pollTimer!);
       _pollTimer = null;
@@ -336,7 +355,7 @@ btnDownloadAiModel.addEventListener('click', async () => {
   btnDownloadAiModel.textContent = '⏳ Checking...';
   aiDownloadStatus.textContent = '';
 
-  const status = await checkAiStatus();
+  const status = await checkAiStatusViaWorker();
 
   if (status === 'unsupported') {
     btnDownloadAiModel.disabled = false;
@@ -365,7 +384,7 @@ btnDownloadAiModel.addEventListener('click', async () => {
   btnDownloadAiModel.textContent = '⚡ Waking Up...';
   aiDownloadStatus.innerHTML = '✅ Signal sent! Now go to <code style="background: var(--bg-secondary); padding: 2px 4px; border-radius: 4px;">chrome://components</code> (Step 6).';
   aiDownloadStatus.style.color = '#047857';
-  await triggerModelDownload();
+  await triggerModelDownloadViaWorker();
   startDownloadPoller();
 });
 

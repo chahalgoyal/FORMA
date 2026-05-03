@@ -5,6 +5,7 @@
 
 import type { ProfileKeyPath } from '../types/index.js';
 import { saveLearnedMapping } from '../core/storage/storageManager.js';
+import { checkAiStatus, triggerModelDownload, generateFillMapping } from '../core/ai/aiManager.js';
 
 // Track pending learn candidates for notification responses
 const pendingLearnCandidates = new Map<
@@ -176,6 +177,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       // Just log it for now
       console.debug('[Forma SW] Auto-fill result received:', message.payload);
       return false;
+    }
+
+    // ── AI Execution Handlers (Offloaded from Content Script) ──
+    case 'FORMA_AI_STATUS_REQUEST': {
+      checkAiStatus().then((status) => {
+        sendResponse({ status });
+      }).catch((err) => {
+        console.error('[Forma SW] checkAiStatus error:', err);
+        sendResponse({ status: 'unsupported' });
+      });
+      return true; // async response
+    }
+
+    case 'FORMA_AI_MAPPING_REQUEST': {
+      const { profile, unmatchedLabels } = message.payload;
+      generateFillMapping(profile, unmatchedLabels).then((mapping) => {
+        sendResponse({ mapping });
+      }).catch((err) => {
+        console.error('[Forma SW] generateFillMapping error:', err);
+        sendResponse({ mapping: null });
+      });
+      return true; // async response
+    }
+
+    case 'FORMA_AI_DOWNLOAD_REQUEST': {
+      triggerModelDownload().then(() => {
+        sendResponse({ success: true });
+      }).catch((err) => {
+        console.error('[Forma SW] triggerModelDownload error:', err);
+        sendResponse({ success: false });
+      });
+      return true; // async response
     }
 
     default:

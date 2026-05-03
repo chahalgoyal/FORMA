@@ -45,15 +45,14 @@ export function resolveProfileValue(
     case 'name.last':
       return profile.name.last;
 
-    // ── Phone: default 10-digit, append country code only if constrained ──
+    // ── Phone: sanitize digits, respect input maxlength if present ──
     case 'contact.phone.primary': {
       const rawPrimary = String(profile.contact.phone.primary || '');
       if (constraint === 'use-country-code') {
         return profile.contact.phone.countryCode + rawPrimary;
       }
-      // Force sanitize: extract only digits, take the last 10
       const digitsOnlyPrimary = rawPrimary.replace(/\D/g, '');
-      return digitsOnlyPrimary.slice(-10);
+      return smartTruncatePhone(digitsOnlyPrimary, container);
     }
 
     case 'contact.phone.alternate': {
@@ -62,9 +61,8 @@ export function resolveProfileValue(
       if (constraint === 'use-country-code') {
         return profile.contact.phone.countryCode + rawAlt;
       }
-      // Force sanitize: extract only digits, take the last 10
       const digitsOnlyAlt = rawAlt.replace(/\D/g, '');
-      return digitsOnlyAlt.slice(-10);
+      return smartTruncatePhone(digitsOnlyAlt, container);
     }
 
     // ── Email with constraint override ──
@@ -95,6 +93,29 @@ export function resolveProfileValue(
     default:
       return getNestedValue(profile as unknown as Record<string, unknown>, profileKey) ?? '';
   }
+}
+
+/**
+ * Smartly truncates a phone number based on the input's maxlength.
+ * If maxlength is set (e.g., 10 for Indian forms), slice to that length.
+ * Otherwise, return the full sanitized digits — avoids corrupting
+ * phone numbers from regions with non-10-digit formats (UK, AU, etc.).
+ */
+function smartTruncatePhone(digits: string, container?: Element): string {
+  if (!container) return digits;
+
+  const input = queryFirst(SELECTORS.TEXT_INPUT, container) as HTMLInputElement | null;
+  if (!input) return digits;
+
+  const maxLength = input.getAttribute('maxlength');
+  if (maxLength) {
+    const max = parseInt(maxLength, 10);
+    if (!isNaN(max) && max > 0) {
+      return digits.slice(-max);
+    }
+  }
+
+  return digits;
 }
 
 /**

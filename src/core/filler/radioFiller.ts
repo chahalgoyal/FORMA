@@ -1,11 +1,18 @@
 // ──────────────────────────────────────────────
 // Forma — Radio Input Filler
 // Fills <input type="radio"> or [role="radiogroup"]
+// Uses native prototype setters for React/SPA compatibility
 // ──────────────────────────────────────────────
 
 import Fuse from 'fuse.js';
 import { SELECTORS } from '../../utils/constants.js';
 import { queryFirst, simulateClick, findBestShorthandMatch } from '../../utils/helpers.js';
+
+// Cache the native checked setter — same React bypass principle as textFiller.
+// React overrides the `checked` property on radio elements to track state.
+const nativeCheckedSetter = Object.getOwnPropertyDescriptor(
+  window.HTMLInputElement.prototype, 'checked'
+)?.set;
 
 export function fillRadio(
   inputElements: Element[],
@@ -73,7 +80,12 @@ export function fillRadio(
     const shorthandMatch = findBestShorthandMatch(optionEntries, value);
     if (shorthandMatch) {
       const radio = shorthandMatch as HTMLInputElement;
-      radio.checked = true;
+      if (nativeCheckedSetter) {
+        nativeCheckedSetter.call(radio, true);
+      } else {
+        radio.checked = true;
+      }
+      radio.dispatchEvent(new Event('input', { bubbles: true }));
       radio.dispatchEvent(new Event('change', { bubbles: true }));
       return true;
     }
@@ -89,7 +101,12 @@ export function fillRadio(
     const results = fuse.search(value);
     if (results.length > 0 && results[0].score !== undefined && results[0].score < threshold) {
       const radio = results[0].item.element as HTMLInputElement;
-      radio.checked = true;
+      if (nativeCheckedSetter) {
+        nativeCheckedSetter.call(radio, true);
+      } else {
+        radio.checked = true;
+      }
+      radio.dispatchEvent(new Event('input', { bubbles: true }));
       radio.dispatchEvent(new Event('change', { bubbles: true }));
       return true;
     }

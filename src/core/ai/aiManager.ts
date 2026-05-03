@@ -8,13 +8,13 @@ import type { FormaProfile } from '../../types/index.js';
 // The API may be exposed under 'ai.languageModel' or 'LanguageModel'
 // We use a helper to grab the correct one dynamically.
 function getLanguageModelAPI(): any {
-  // Always prefer window.ai.languageModel if it exists (Chrome 128+)
-  if (typeof (window as any).ai !== 'undefined' && (window as any).ai.languageModel) {
-    return (window as any).ai.languageModel;
+  // Always prefer globalThis.ai.languageModel if it exists (Chrome 128+)
+  if (typeof (globalThis as any).ai !== 'undefined' && (globalThis as any).ai.languageModel) {
+    return (globalThis as any).ai.languageModel;
   }
   // Fallback for older versions
-  if (typeof (window as any).LanguageModel !== 'undefined') {
-    return (window as any).LanguageModel;
+  if (typeof (globalThis as any).LanguageModel !== 'undefined') {
+    return (globalThis as any).LanguageModel;
   }
   return null;
 }
@@ -31,22 +31,66 @@ export async function checkAiStatus(): Promise<'ready' | 'downloading' | 'needs-
   }
 
   try {
+    // Strategy: Use create() as the primary probe instead of capabilities().
+    // capabilities() triggers Chrome's "No output language" warning in the
+    // extension error bar regardless of params passed. create() is the ONLY
+    // call that properly accepts language params and suppresses the warning.
+    //
+    // If create() succeeds → model is ready (destroy the session immediately).
+    // If create() throws → parse the error to determine download status.
+    try {
+      const session = await api.create({
+        expectedInputLanguages: ['en'],
+        expectedOutputLanguages: ['en'],
+      });
+      // Success — model is ready. Clean up the session immediately.
+      if (session && typeof session.destroy === 'function') {
+        session.destroy();
+      }
+      console.debug('[Forma AI] create() succeeded — model is ready.');
+      return 'ready';
+    } catch (createError: any) {
+      const errMsg = String(createError?.message || createError || '').toLowerCase();
+      console.debug('[Forma AI] create() probe error:', errMsg);
+
+      // Parse the error message to determine status
+      if (errMsg.includes('download') && errMsg.includes('progress')) {
+        return 'downloading';
+      }
+      if (errMsg.includes('after-download') || errMsg.includes('need') || errMsg.includes('not available')) {
+        return 'needs-download';
+      }
+      if (errMsg.includes('download')) {
+        return 'needs-download';
+      }
+
+      // create() failed for an unknown reason — fall back to capabilities()
+      // (accept that this MAY trigger the warning on some builds)
+      return await checkViaCapabilities(api);
+    }
+  } catch (e) {
+    console.debug('[Forma AI] Error checking status (suppressed):', e);
+    return 'unsupported';
+  }
+}
+
+/**
+ * Fallback: check via capabilities() / availability().
+ * Only used if create() fails with an unparseable error.
+ */
+async function checkViaCapabilities(api: any): Promise<'ready' | 'downloading' | 'needs-download' | 'unsupported'> {
+  try {
     let statusObj: any;
-    // NOTE: capabilities() does NOT accept language params — only create() does.
-    // The Chrome warning "No output language was specified" is a platform-level advisory
-    // that fires whenever ANY page touches the LanguageModel API. It cannot be suppressed from JS.
+
     if (typeof api.capabilities === 'function') {
       statusObj = await api.capabilities();
     } else if (typeof api.availability === 'function') {
       statusObj = await api.availability();
     } else {
-      console.debug('[Forma AI] Neither capabilities() nor availability() found on API object.', api);
       return 'unsupported';
     }
 
-    console.debug('[Forma AI] capabilities() returned:', statusObj);
-
-    // Handle string responses (some Chrome builds return a raw string)
+    // Handle string responses
     if (typeof statusObj === 'string') {
       if (statusObj === 'no') return 'unsupported';
       if (statusObj === 'readily' || statusObj === 'available') return 'ready';
@@ -56,16 +100,13 @@ export async function checkAiStatus(): Promise<'ready' | 'downloading' | 'needs-
     }
 
     const available = statusObj.available || statusObj.availability;
-    console.debug('[Forma AI] Parsed availability state:', available);
-
     if (available === 'no') return 'unsupported';
     if (available === 'readily' || available === 'available') return 'ready';
     if (available === 'after-download' || available === 'downloadable') return 'needs-download';
     if (available === 'downloading') return 'downloading';
 
     return 'unsupported';
-  } catch (e) {
-    console.error('[Forma AI] Error checking status:', e);
+  } catch {
     return 'unsupported';
   }
 }
@@ -81,10 +122,13 @@ export async function triggerModelDownload(): Promise<void> {
     console.debug('[Forma AI] Sending wake-up signal to register component...');
     // Send a create() call with languages to prevent Chrome from logging a warning
     // This forces Chrome to register the component in chrome://components
-    await api.create({
-      expectedInputLanguage: 'en',
-      expectedOutputLanguage: 'en',
+    const session = await api.create({
+      expectedInputLanguages: ['en'],
+      expectedOutputLanguages: ['en'],
     });
+    if (session && typeof session.destroy === 'function') {
+      session.destroy();
+    }
   } catch (e) {
     console.debug('[Forma AI] Wake-up signal sent (Error expected during download):', e);
   }
@@ -138,8 +182,8 @@ export async function generateFillMapping(
     }
 
     const session = await api.create({
-      expectedInputLanguage: 'en',
-      expectedOutputLanguage: 'en',
+      expectedInputLanguages: ['en'],
+      expectedOutputLanguages: ['en'],
     });
 
     const promptVersion = 'v5.0 (Key-Mapping)';

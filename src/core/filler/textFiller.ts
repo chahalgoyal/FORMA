@@ -1,13 +1,27 @@
 // ──────────────────────────────────────────────
 // Forma — Text Input Filler
 // Fills <input> and <textarea> elements
+// Uses native prototype setters for React/SPA compatibility
 // ──────────────────────────────────────────────
 
+// Cache the native value setters from the prototype chain.
+// React 16+ overrides the `value` setter on DOM element instances
+// to track internal state via a synthetic event system. Setting
+// `input.value = x` directly bypasses this, causing the field to
+// visually update but React's state to remain empty ("ghost fill").
+// By calling the *native* setter, we write the value at the DOM level,
+// and the subsequent InputEvent forces React to reconcile.
+const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+  window.HTMLInputElement.prototype, 'value'
+)?.set;
+
+const nativeTextAreaValueSetter = Object.getOwnPropertyDescriptor(
+  window.HTMLTextAreaElement.prototype, 'value'
+)?.set;
+
 /**
- * Fills a text-type input element.
- *
- * Sets the element value and dispatches 'input' and 'change' events
- * to trigger React/Angular/Vue state updates on generic forms.
+ * Fills a text-type input element using native prototype setters
+ * to ensure compatibility with React, Angular, and Vue SPAs.
  *
  * @param inputElements - The extracted input elements array (expected [0] for text)
  * @param value     - The string value to fill
@@ -22,14 +36,31 @@ export function fillTextInput(inputElements: Element[], value: string): boolean 
       return false;
     }
 
-    // Set the value
-    input.value = value;
+    // ── Handle contenteditable elements ──
+    if (input.getAttribute('contenteditable') === 'true') {
+      input.textContent = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    }
 
-    // Dispatch events for React/Angular/Vue listeners
-    input.dispatchEvent(new Event('input', { bubbles: true }));
+    // ── Set value via native prototype setter (React-safe) ──
+    const setter = input.tagName === 'TEXTAREA'
+      ? nativeTextAreaValueSetter
+      : nativeInputValueSetter;
+
+    if (setter) {
+      setter.call(input, value);
+    } else {
+      // Absolute fallback — only if prototype descriptors are unavailable
+      input.value = value;
+    }
+
+    // Dispatch InputEvent (not plain Event) — React listens for this specifically
+    input.dispatchEvent(new InputEvent('input', { bubbles: true, data: value, inputType: 'insertText' }));
     input.dispatchEvent(new Event('change', { bubbles: true }));
 
-    // Also try dispatching a focus/blur cycle for form validation triggers
+    // Focus/blur cycle for form validation triggers
     input.dispatchEvent(new Event('focus', { bubbles: true }));
     input.dispatchEvent(new Event('blur', { bubbles: true }));
 
