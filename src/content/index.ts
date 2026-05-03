@@ -10,12 +10,12 @@ import type {
   FillResult,
   FormaResultPayload,
 } from '../types/index.js';
-import { getProfile, getLearnedMappings, getSettings } from '../core/storage/storageManager.js';
+import { getProfile, getSettings } from '../core/storage/storageManager.js';
 import { parseFormFields } from './domParser.js';
 import { match } from '../core/matcher/index.js';
 import { fill } from '../core/filler/index.js';
 import { injectHighlightStyles, applyHighlight, clearAllHighlights } from './highlighter.js';
-import { attachLearningListeners } from './learningWatcher.js';
+// Removed learningWatcher import
 
 // ──────────────────────────────────────────────
 // On-Page Toast Notification
@@ -171,9 +171,8 @@ async function runAutofill(): Promise<FormaResultPayload> {
   console.debug('[Forma] Starting autofill pipeline...');
 
   // ── Step 1: Load data ──
-  const [profile, learnedMappings, settings] = await Promise.all([
+  const [profile, settings] = await Promise.all([
     getProfile(),
-    getLearnedMappings(),
     getSettings(),
   ]);
 
@@ -219,7 +218,6 @@ async function runAutofill(): Promise<FormaResultPayload> {
     const matchResult = match(
       field.normalizedLabel,
       field.rawLabel,
-      learnedMappings,
       settings
     );
 
@@ -368,8 +366,7 @@ async function runAutofill(): Promise<FormaResultPayload> {
     }
   }
 
-  // ── Step 6: Attach learning listeners ──
-  attachLearningListeners(fields, profile);
+  // Adaptive learning listeners removed
 
   // ── Step 7: Compile results ──
   const filledResults = results.filter((r) => r.status === 'filled');

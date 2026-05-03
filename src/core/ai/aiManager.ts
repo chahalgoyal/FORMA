@@ -181,17 +181,32 @@ export async function generateFillMapping(
       }
     }
 
-    const session = await api.create({
-      expectedInputLanguages: ['en'],
-      expectedOutputLanguages: ['en'],
-    });
-
-    const promptVersion = 'v5.0 (Key-Mapping)';
-    console.debug(`[Forma AI] Sending prompt ${promptVersion} to Nano...`);
-
+    const BATCH_SIZE = 20;
+    const filtered: Record<string, any> = {};
+    const relativeKeywords = ['father', 'mother', 'parent', 'guardian', 'emergency'];
     const profileKeys = Object.keys(flatProfile);
+    const labelSet = new Set(labels);
 
-    const prompt = `You are a strict data-mapping bot. Match each Form Field to the EXACT KEY from the Profile Keys list. Output ONLY valid JSON.
+    console.debug(`[Forma AI] Processing ${labels.length} fields in batches of ${BATCH_SIZE}...`);
+
+    for (let i = 0; i < labels.length; i += BATCH_SIZE) {
+      const batchLabels = labels.slice(i, i + BATCH_SIZE);
+      
+      let session: any;
+      try {
+        session = await api.create({
+          expectedInputLanguages: ['en'],
+          expectedOutputLanguages: ['en'],
+        });
+      } catch (e) {
+        console.warn('[Forma AI] Failed to create session for batch:', e);
+        continue;
+      }
+
+      const promptVersion = 'v5.0 (Key-Mapping)';
+      console.debug(`[Forma AI] Sending prompt ${promptVersion} to Nano (Batch ${i / BATCH_SIZE + 1})...`);
+
+      const prompt = `You are a strict data-mapping bot. Match each Form Field to the EXACT KEY from the Profile Keys list. Output ONLY valid JSON.
 
 EXAMPLE PROFILE KEYS:
 ["name.first", "contact.phone.primary", "contact.email.college", "academic.roll_no", "Father's Name"]
@@ -209,87 +224,102 @@ PROFILE KEYS:
 ${JSON.stringify(profileKeys)}
 
 FORM FIELDS TO MAP:
-${JSON.stringify(labels)}
+${JSON.stringify(batchLabels)}
 
 EXPECTED OUTPUT:`;
 
-    // Race the AI prompt against a 120s timeout
-    const AI_TIMEOUT_MS = 120_000;
-    const response = await Promise.race([
-      session.prompt(prompt),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error(`[Forma AI] Timed out after ${AI_TIMEOUT_MS / 1000}s`)), AI_TIMEOUT_MS)
-      ),
-    ]);
-    const elapsed = Math.round(performance.now() - startTime);
-    console.debug(`[Forma AI] Response received in ${elapsed}ms`);
-
-    // Clean up markdown fences if the model hallucinates them
-    let clean = response.trim();
-    if (clean.startsWith('\`\`\`json')) clean = clean.substring(7);
-    if (clean.startsWith('\`\`\`')) clean = clean.substring(3);
-    if (clean.endsWith('\`\`\`')) clean = clean.substring(0, clean.length - 3);
-    clean = clean.trim();
-
-    try {
-      const mapping = JSON.parse(clean) as Record<string, any>;
-      console.debug('[Forma AI] Raw AI response (parsed):', mapping);
-      const labelSet = new Set(labels);
-      
-      const filtered: Record<string, any> = {};
-      const relativeKeywords = ['father', 'mother', 'parent', 'guardian', 'emergency'];
-
-      for (const [formField, mappedKey] of Object.entries(mapping)) {
-        // 1. Skip if key wasn't in our requested labels
-        if (!labelSet.has(formField)) continue;
-
-        // 2. Skip nulls or the string "null"
-        if (mappedKey === null || mappedKey === 'null' || mappedKey === '') {
-          filtered[formField] = null;
-          continue;
-        }
-
-        const stringKey = String(mappedKey);
-
-        // 3. STRICT KEY MATCH (No substring hallucinations possible)
-        if (!profileKeys.includes(stringKey)) {
-          console.debug(`[Forma AI] Rejected hallucinated key for "${formField}": "${stringKey}"`);
-          filtered[formField] = null;
-          continue;
-        }
-
-        // 4. IDENTITY BLEED CHECK (bidirectional)
-        const lowerLabel = formField.toLowerCase();
-        const lowerKey = stringKey.toLowerCase();
-        
-        const isRelativeField = relativeKeywords.some(rk => lowerLabel.includes(rk));
-        const isRelativeKey = relativeKeywords.some(rk => lowerKey.includes(rk));
-
-        // Block: relative field ← personal key (e.g. "Father's Phone" ← contact.phone.primary)
-        if (isRelativeField && !isRelativeKey) {
-           console.debug(`[Forma AI] Rejected identity bleed for "${formField}": mapped to key "${stringKey}"`);
-           filtered[formField] = null;
-           continue;
-        }
-        // Block: personal field ← relative key (e.g. "Your Email" ← Father's Email)
-        if (!isRelativeField && isRelativeKey) {
-           console.debug(`[Forma AI] Rejected reverse bleed for "${formField}": mapped to key "${stringKey}"`);
-           filtered[formField] = null;
-           continue;
-        }
-
-        // Passed all checks! Get the actual value from the profile using the valid key.
-        filtered[formField] = flatProfile[stringKey];
+      // Race the AI prompt against a 60s timeout per batch
+      const AI_TIMEOUT_MS = 60_000;
+      let response = '';
+      try {
+        response = await Promise.race([
+          session.prompt(prompt),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`[Forma AI] Timed out after ${AI_TIMEOUT_MS / 1000}s`)), AI_TIMEOUT_MS)
+          ),
+        ]);
+      } catch (e) {
+        console.warn('[Forma AI] Batch timed out or failed:', e);
+        session.destroy?.();
+        continue;
       }
 
-      console.debug(
-        `[Forma AI] Mapped ${Object.keys(filtered).length}/${labels.length} fields (${elapsed}ms)`
-      );
-      return filtered;
-    } catch (parseError) {
-      console.error('[Forma AI] Failed to parse AI JSON response:', clean);
-      return null;
+      if (session && typeof session.destroy === 'function') {
+        session.destroy();
+      }
+
+      // Clean up markdown fences
+      let clean = response.trim();
+      if (clean.startsWith('```json')) clean = clean.substring(7);
+      if (clean.startsWith('```')) clean = clean.substring(3);
+      if (clean.endsWith('```')) clean = clean.substring(0, clean.length - 3);
+      clean = clean.trim();
+
+      // Auto-heal truncated JSON (often caused by token limits on large batches)
+      if (!clean.endsWith('}')) {
+        if (clean.endsWith(',')) {
+          clean = clean.substring(0, clean.length - 1) + '}';
+        } else {
+          clean += '}';
+        }
+        console.debug('[Forma AI] Auto-healed truncated JSON');
+      }
+
+      try {
+        const mapping = JSON.parse(clean) as Record<string, any>;
+        
+        for (const [formField, mappedKey] of Object.entries(mapping)) {
+          // 1. Skip if key wasn't in our requested labels
+          if (!labelSet.has(formField)) continue;
+
+          // 2. Skip nulls or the string "null"
+          if (mappedKey === null || mappedKey === 'null' || mappedKey === '') {
+            filtered[formField] = null;
+            continue;
+          }
+
+          const stringKey = String(mappedKey);
+
+          // 3. STRICT KEY MATCH (No substring hallucinations possible)
+          if (!profileKeys.includes(stringKey)) {
+            console.debug(`[Forma AI] Rejected hallucinated key for "${formField}": "${stringKey}"`);
+            filtered[formField] = null;
+            continue;
+          }
+
+          // 4. IDENTITY BLEED CHECK (bidirectional)
+          const lowerLabel = formField.toLowerCase();
+          const lowerKey = stringKey.toLowerCase();
+          
+          const isRelativeField = relativeKeywords.some(rk => lowerLabel.includes(rk));
+          const isRelativeKey = relativeKeywords.some(rk => lowerKey.includes(rk));
+
+          // Block: relative field ← personal key
+          if (isRelativeField && !isRelativeKey) {
+             console.debug(`[Forma AI] Rejected identity bleed for "${formField}": mapped to key "${stringKey}"`);
+             filtered[formField] = null;
+             continue;
+          }
+          // Block: personal field ← relative key
+          if (!isRelativeField && isRelativeKey) {
+             console.debug(`[Forma AI] Rejected reverse bleed for "${formField}": mapped to key "${stringKey}"`);
+             filtered[formField] = null;
+             continue;
+          }
+
+          // Passed all checks!
+          filtered[formField] = flatProfile[stringKey];
+        }
+      } catch (parseError) {
+        console.error('[Forma AI] Failed to parse AI JSON response for batch:', clean);
+      }
     }
+
+    const elapsed = Math.round(performance.now() - startTime);
+    console.debug(
+      `[Forma AI] Mapped ${Object.keys(filtered).length}/${labels.length} fields (${elapsed}ms)`
+    );
+    return filtered;
   } catch (e) {
     console.error('[Forma AI] Mapping generation failed:', e);
     return null;

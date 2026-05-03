@@ -204,7 +204,8 @@ function scrollToSection(sectionName: string): void {
     // Use the scroll container, not scrollIntoView (which can fight with overflow)
     const containerTop = contentScroll.getBoundingClientRect().top;
     const targetTop = target.getBoundingClientRect().top;
-    const offset = contentScroll.scrollTop + (targetTop - containerTop);
+    // Subtract 40px to give the section header breathing room at the top of the view
+    const offset = contentScroll.scrollTop + (targetTop - containerTop) - 40;
     contentScroll.scrollTo({ top: offset, behavior: 'smooth' });
   }
 }
@@ -422,7 +423,10 @@ function renderCustomFieldRow(label = '', value = ''): HTMLDivElement {
   removeBtn.type = 'button';
   removeBtn.textContent = '✕';
   removeBtn.style.cssText = 'background: none; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; padding: 6px 10px; color: var(--text-secondary); font-size: 14px;';
-  removeBtn.addEventListener('click', () => row.remove());
+  removeBtn.addEventListener('click', () => {
+    row.remove();
+    handleSave(); // Auto-save when a custom field is removed
+  });
 
   row.appendChild(labelInput);
   row.appendChild(valueInput);
@@ -529,8 +533,8 @@ function validate(): boolean {
 
 // ─── Save Profile ────────────────────────────
 
-async function handleSave(e: Event): Promise<void> {
-  e.preventDefault();
+async function handleSave(e?: Event): Promise<void> {
+  if (e) e.preventDefault();
 
   if (!validate()) {
     showToast('Please fix the highlighted errors.', 'error');
@@ -575,7 +579,15 @@ async function handleSave(e: Event): Promise<void> {
   settings.enableAi = enableAiCheckbox.checked;
   await saveSettings(settings);
 
-  showToast('Profile and Settings saved successfully! ✓', 'success');
+  // Only show the bright toast if the user explicitly clicked the Save button
+  if (e) {
+    showToast('Profile and Settings saved successfully! ✓', 'success');
+  } else {
+    // For auto-saves, show a quieter, brief toast so it's not distracting
+    toastMessage.textContent = 'Auto-saved';
+    toast.className = 'toast show success';
+    setTimeout(() => toast.classList.remove('show'), 1500);
+  }
   updateCompleteness();
 }
 
@@ -743,7 +755,13 @@ function updateBacklogVisibility(): void {
 
 // ─── Event Listeners ─────────────────────────
 
+// Explicit Save Button
 form.addEventListener('submit', handleSave);
+
+// Auto-Save: Triggers whenever any input loses focus and its value changed,
+// or when checkboxes/radios/selects are interacted with.
+form.addEventListener('change', () => handleSave());
+
 btnClear.addEventListener('click', handleClear);
 btnExport.addEventListener('click', handleExport);
 btnImport.addEventListener('click', handleImport);

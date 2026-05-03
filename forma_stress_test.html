@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forma Intensive Stress Test</title>
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif; background: #f4f4f5; color: #18181b; padding: 20px; max-width: 800px; margin: 0 auto; }
+    h1 { font-size: 24px; margin-bottom: 20px; border-bottom: 2px solid #e4e4e7; padding-bottom: 10px; }
+    h2 { font-size: 18px; color: #3f3f46; margin-top: 30px; }
+    .test-case { background: white; border: 1px solid #e4e4e7; border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .test-desc { font-size: 12px; color: #71717a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    input[type="text"], input[type="email"], select { width: 100%; padding: 8px; border: 1px solid #d4d4d8; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+    .hidden { display: none; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+  </style>
+</head>
+<body>
+
+  <h1>Forma Matching Stress Test</h1>
+  <p>This page contains deliberately broken, confusing, and ambiguous form structures designed to break autofill engines.</p>
+
+  <h2>1. Poison Words & Identity Bleed</h2>
+  <div class="test-case">
+    <div class="test-desc">Tests if the matcher prevents filling relative data into personal fields</div>
+    <div class="form-group">
+      <label for="f_name">Father's First Name</label>
+      <input type="text" id="f_name" class="first-name-input">
+    </div>
+    <div class="form-group">
+      <label for="w_phone">Wife's Phone Number</label>
+      <input type="text" id="w_phone" class="phone-primary">
+    </div>
+    <div class="form-group">
+      <label for="em_email">Emergency Contact Email</label>
+      <input type="email" id="em_email" class="personal-email-field">
+    </div>
+    <div class="form-group">
+      <label for="nom">Nominee Name</label>
+      <input type="text" id="nom">
+    </div>
+  </div>
+
+  <h2>2. Ambiguity Guard (Fuzzy Matcher)</h2>
+  <div class="test-case">
+    <div class="test-desc">Tests if neck-and-neck scores are routed to AI instead of guessing</div>
+    <div class="form-group">
+      <label for="board_perc">Board Percentage</label>
+      <input type="text" id="board_perc" placeholder="Could be 10th or 12th">
+    </div>
+    <div class="form-group">
+      <label for="pass_yr">Passing Year</label>
+      <input type="text" id="pass_yr" placeholder="Which passing year?">
+    </div>
+  </div>
+
+  <h2>3. Misleading ARIA and IDs</h2>
+  <div class="test-case">
+    <div class="test-desc">Tests if the semantic parser prioritizes the correct W3C attributes</div>
+    <div class="form-group">
+      <!-- Label says Last Name, but ARIA says First Name, ID says middle -->
+      <label id="lbl_1">Last Name</label>
+      <input type="text" id="middle_name_field" aria-labelledby="lbl_1" aria-label="First Name">
+    </div>
+    <div class="form-group">
+      <span id="fake_lbl">GitHub URL</span>
+      <input type="text" aria-labelledby="fake_lbl" placeholder="LinkedIn Profile">
+    </div>
+  </div>
+
+  <h2>4. Duplicate-Key Ghosting Guard</h2>
+  <div class="test-case">
+    <div class="test-desc">Two fields that technically map to the same profile key. Only the first should fill.</div>
+    <div class="form-group">
+      <label for="e1">Primary Email Address</label>
+      <input type="email" id="e1">
+    </div>
+    <div class="form-group">
+      <label for="e2">Confirm Email Address</label>
+      <input type="email" id="e2">
+    </div>
+    <div class="form-group">
+      <label for="e3">Alternate Personal Email</label>
+      <input type="email" id="e3">
+    </div>
+  </div>
+
+  <h2>5. Structural Truncation & Constraints</h2>
+  <div class="test-case">
+    <div class="test-desc">Tests if phone numbers are properly truncated without country codes</div>
+    <div class="form-group">
+      <label for="p1">Mobile (without country code)</label>
+      <input type="text" id="p1" maxlength="10">
+    </div>
+    <div class="form-group">
+      <label for="p2">Phone Number</label>
+      <!-- International format should drop the + here if maxlength is 10 -->
+      <input type="text" id="p2" maxlength="10">
+    </div>
+  </div>
+
+  <h2>6. React-like Synthetic Spans (No Native Labels)</h2>
+  <div class="test-case">
+    <div class="test-desc">Tests DOM parser heading fallback when standard labels are missing</div>
+    <div style="padding: 10px; border: 1px dashed #ccc; margin-bottom: 10px;">
+      <div style="font-size: 14px; font-weight: bold; margin-bottom: 5px;">Current CGPA</div>
+      <div class="input-wrapper">
+        <input type="text" class="react-input">
+      </div>
+    </div>
+    <div style="padding: 10px; border: 1px dashed #ccc;">
+      <div style="font-size: 14px; font-weight: bold; margin-bottom: 5px;">Active Backlogs</div>
+      <div class="input-wrapper">
+        <input type="radio" name="backlog_test" value="Yes"> Yes
+        <input type="radio" name="backlog_test" value="No"> No
+      </div>
+    </div>
+  </div>
+
+  <h2>7. Stop Word Noise Filtering</h2>
+  <div class="test-case">
+    <div class="test-desc">Extremely long, noisy labels filled with instructional words</div>
+    <div class="form-group">
+      <label for="noise1">Please write and specify your complete residential home address in the field provided below carefully</label>
+      <input type="text" id="noise1">
+    </div>
+    <div class="form-group">
+      <label for="noise2">Select and choose the appropriate gender that you identify with from the following list</label>
+      <select id="noise2">
+        <option value="">Select...</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+  </div>
+
+  <h2>8. Extreme Edge Case: Invisible / Honeypot Fields</h2>
+  <div class="test-case">
+    <div class="test-desc">Ensure invisible elements are ignored to prevent bot detection flags</div>
+    <div class="form-group hidden">
+      <label for="honey1">Personal Email</label>
+      <input type="email" id="honey1">
+    </div>
+    <div class="form-group">
+      <label for="honey2" class="sr-only">First Name</label>
+      <input type="text" id="honey2" style="opacity: 0; position: absolute; left: -9999px;">
+    </div>
+  </div>
+
+</body>
+</html>

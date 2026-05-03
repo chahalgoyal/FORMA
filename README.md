@@ -5,7 +5,7 @@
   </h1>
   <h3>AI-Powered, Privacy-First Autofill for Students</h3>
 
-[![Version](https://img.shields.io/badge/Version-2.0.2-blue?style=for-the-badge)](https://github.com/chahalgoyal/FORMA/releases/latest)
+[![Version](https://img.shields.io/badge/Version-2.0.3-blue?style=for-the-badge)](https://github.com/chahalgoyal/FORMA/releases/latest)
 [![Chrome Web Store](https://img.shields.io/badge/Chrome-Web%20Store-4285F4?style=for-the-badge&logo=google-chrome)](https://chromewebstore.google.com)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-orange?style=for-the-badge&logo=google-chrome)](https://developer.chrome.com/docs/extensions/mv3)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
@@ -102,9 +102,6 @@ When the keyword and fuzzy matchers can't find a match, Forma sends the remainin
 - **2-minute timeout** — If the AI takes too long, the pipeline gracefully degrades to skip-mode
 - **100% local** — Runs entirely on Chrome's built-in model, no network requests
 
-### 📚 Adaptive Learning
-When you manually correct a field that Forma filled incorrectly (or missed), Forma detects the change, performs a reverse-lookup into your profile, and asks if it should **remember that mapping** for all future forms.
-
 ### 🎨 The "Cozy Organic" Interface
 Forma's UI is designed to feel warm, tactile, and premium — not sterile and boxy. Both the popup and the full-page profile editor use a **warm earthy palette** with sage green accents, smooth micro-animations, and a plaque-style design that feels approachable.
 
@@ -146,7 +143,7 @@ Export your entire profile as a clean JSON file and import it on another machine
 │                     CONTENT SCRIPT                        │
 │                                                           │
 │  ┌──────────────┐    ┌──────────────┐    ┌─────────────┐ │
-│  │  Universal   │──► │  4-Layer     │──► │  Adaptive   │ │
+│  │  Universal   │──► │  4-Layer     │──► │  Smart      │ │
 │  │  DOM Parser  │    │  Matcher     │    │  Filler     │ │
 │  │ (W3C + SPA)  │    │              │    │ (Text/Radio │ │
 │  └──────────────┘    │  Keyword     │    │  /Dropdown) │ │
@@ -155,10 +152,10 @@ Export your entire profile as a clean JSON file and import it on another machine
 │                      │  AI (Nano)   │◄── Gemini Nano API │
 │                      └──────────────┘    (On-Device)     │
 │                                                           │
-│  ┌──────────────┐    ┌──────────────┐                    │
-│  │ Highlighter  │    │  Learning    │                    │
-│  │ (Visual FB)  │    │  Watcher     │                    │
-│  └──────────────┘    └──────────────┘                    │
+│  ┌──────────────┐                                        │
+│  │ Highlighter  │                                        │
+│  │ (Visual FB)  │                                        │
+│  └──────────────┘                                        │
 └───────────────────────────────────────────────────────────┘
 ```
 
@@ -263,6 +260,13 @@ forma/
 
 ## 📋 Changelog
 
+### v2.0.3 — AI Refinement & Architecture Optimization
+- **AI Payload Batching:** Solved Nano token-limit truncation issues by processing large forms in chunks
+- **Auto-Healing JSON:** Robust fallback to repair abruptly truncated LLM responses on massive test cases
+- **Removed Adaptive Learning:** Purged legacy architecture in favor of a purely deterministic 3-layer AI pipeline
+- **UI Enhancements:** Fixed dark-mode scrollbar rendering, corrected manual scroll offsets, and added 'breathing' indicator animations
+- **Auto-Save Functionality:** Seamlessly persists data without manual save clicks
+
 ### v2.0.2 — Stability & Matching Audit
 - **React-Safe Fillers:** Ghost fill bug resolved using native setters for text, radio, and select inputs
 - **Phone Truncation:** Fixed an issue where international phone numbers were corrupted on field length limits
@@ -303,8 +307,7 @@ forma/
 
 ### v1.0.0 — Initial Release
 - Three-layer matching engine (Keyword → Fuzzy → Structural)
-- Adaptive learning from user corrections
-- Constraint-aware filling (phone formats, email types)
+- Smart constraint-aware filling (phone formats, email types)
 - Cozy Organic theme
 - Privacy-first, local-only storage
 

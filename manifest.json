@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Forma",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Smart autofill for job portals, Microsoft Forms, and Google Forms.",
   "icons": {
     "16": "assets/icon128.png",

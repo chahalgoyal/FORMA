@@ -21,12 +21,18 @@ import { tokenizeAndClean } from '../../utils/helpers.js';
  */
 // ── Poison words: labels referencing someone else's data ──
 const POISON_WORDS = [
+  // Relatives / 3rd Parties
   'father', 'mother', 'guardian', 'parent', 'spouse',
   'emergency', 'manager', 'referral', 'hr', 'supervisor',
   'company', 'organization', 'employer', 'team', 'event',
   'project', 'mentor', 'friend', 'sibling',
   'wife', 'husband', 'nominee', 'referee', 'reference',
   'representative', 'witness', 'interviewer',
+  // Locations
+  'state', 'city', 'country', 'district', 'pincode', 'zipcode', 'address', 'province', 'region',
+  // System / Files
+  'captcha', 'password', 'signature',
+  'upload', 'file', 'photo', 'image', 'document', 'pdf',
 ];
 
 export function keywordMatch(

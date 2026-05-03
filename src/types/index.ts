@@ -76,13 +76,7 @@ export interface FormaSettings {
   enableAi: boolean;
 }
 
-// ─── Learned Mappings ────────────────────────
 
-export interface LearnedMapping {
-  normalizedLabel: string;
-  profileKey: ProfileKeyPath;
-  savedAt: number;
-}
 
 // ─── Static Mappings ─────────────────────────
 
@@ -133,10 +127,7 @@ export interface FillResult {
 export type MessageType =
   | 'FORMA_FILL'
   | 'FORMA_RESULT'
-  | 'FORMA_CLEAR_HIGHLIGHTS'
-  | 'FORMA_LEARN_CANDIDATE'
-  | 'FORMA_LEARN_CONFIRM'
-  | 'FORMA_LEARN_DISMISS';
+  | 'FORMA_CLEAR_HIGHLIGHTS';
 
 export interface FormaMessage {
   type: MessageType;
@@ -150,11 +141,7 @@ export interface FormaResultPayload {
   skippedLabels: string[];
 }
 
-export interface FormaLearnCandidatePayload {
-  normalizedLabel: string;
-  rawLabel: string;
-  enteredValue: string;
-}
+
 
 // ─── Profile Key Paths ───────────────────────
 // All valid dot-notation paths into the FormaProfile

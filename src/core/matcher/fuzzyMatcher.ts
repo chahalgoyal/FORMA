@@ -14,16 +14,23 @@ interface FuseEntry {
   profileKey: ProfileKeyPath;
 }
 
-// ── Poison words: if label contains ANY of these, skip entirely ──
-// These always indicate someone ELSE's data, not the user's.
+// ── Poison words: labels referencing someone else's data or unsupported types ──
 const POISON_WORDS = new Set([
+  // Relatives / 3rd Parties
   'father', 'mother', 'guardian', 'parent', 'spouse',
   'emergency', 'manager', 'referral', 'hr', 'supervisor',
   'company', 'organization', 'employer', 'team', 'event',
   'project', 'mentor', 'friend', 'sibling',
   'wife', 'husband', 'nominee', 'referee', 'reference',
   'representative', 'witness', 'interviewer',
+  // Locations
+  'state', 'city', 'country', 'district', 'pincode', 'zipcode', 'address', 'province', 'region',
+  // System / Files
+  'captcha', 'password', 'signature',
+  'upload', 'file', 'photo', 'image', 'document', 'pdf',
 ]);
+
+
 
 // Build the flattened pattern list using BoW
 const flattenedPatterns: FuseEntry[] = STATIC_MAPPINGS.flatMap((mapping) =>
@@ -53,12 +60,14 @@ export function fuzzyMatch(
   if (labelTokens.length <= 1) return null;
 
   // ── Guard 2: Poison word check ──
-  // If ANY label token is a possessive/relational word, bail out.
+  // If ANY label token is a possessive/relational word or unsupported location, bail out.
   for (const token of labelTokens) {
     // Strip trailing "'s" for possessives (e.g., "father's" → "father")
     const base = token.replace(/s$/, '');
     if (POISON_WORDS.has(token) || POISON_WORDS.has(base)) return null;
   }
+
+
 
   const fuse = new Fuse(flattenedPatterns, {
     keys: ['patternBoW'],

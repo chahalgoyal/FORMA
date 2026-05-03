@@ -3,7 +3,7 @@
 // Runs all matching layers in sequence
 // ──────────────────────────────────────────────
 
-import type { MatchResult, LearnedMapping, FormaSettings } from '../../types/index.js';
+import type { MatchResult, FormaSettings } from '../../types/index.js';
 import { DEFAULT_SETTINGS } from '../../utils/constants.js';
 import { normalizeLabel } from '../../utils/helpers.js';
 import { keywordMatch } from './keywordMatcher.js';
@@ -16,20 +16,8 @@ import { fuzzyMatch } from './fuzzyMatcher.js';
 function matchSingle(
   normalizedLabel: string,
   rawLabel: string,
-  learnedMappings: LearnedMapping[],
   settings: FormaSettings
 ): MatchResult | null {
-  // ── Layer 0: Learned Mappings ──
-  const learned = learnedMappings.find(
-    (m) => m.normalizedLabel === normalizedLabel
-  );
-  if (learned) {
-    return {
-      profileKey: learned.profileKey,
-      score: 0,
-      source: 'learned',
-    };
-  }
 
   // ── Layer 1: Strict Bag of Words Matching ──
   const keywordResult = keywordMatch(normalizedLabel, rawLabel);
@@ -54,7 +42,6 @@ function matchSingle(
 export function match(
   normalizedLabel: string,
   rawLabel: string,
-  learnedMappings: LearnedMapping[] = [],
   settings: FormaSettings = DEFAULT_SETTINGS
 ): MatchResult | null {
 
@@ -74,7 +61,7 @@ export function match(
     // Match each part independently
     const keys: (string | null)[] = parts.map(part => {
       const norm = normalizeLabel(part);
-      const result = matchSingle(norm, part, learnedMappings, settings);
+      const result = matchSingle(norm, part, settings);
       return result?.profileKey ?? null;
     });
 
@@ -86,7 +73,7 @@ export function match(
       );
       // Return using the first part's full match result
       const norm = normalizeLabel(parts[0]);
-      return matchSingle(norm, parts[0], learnedMappings, settings);
+      return matchSingle(norm, parts[0], settings);
     }
 
     console.debug(
@@ -96,11 +83,10 @@ export function match(
   }
 
   // ── Standard pipeline (no slash) ──
-  const result = matchSingle(normalizedLabel, rawLabel, learnedMappings, settings);
+  const result = matchSingle(normalizedLabel, rawLabel, settings);
 
   if (result) {
-    const sourceLabel = result.source === 'learned' ? 'learned mapping' :
-                        result.source === 'keyword' ? 'keyword match' :
+    const sourceLabel = result.source === 'keyword' ? 'keyword match' :
                         `fuzzy match`;
     const scoreInfo = result.source === 'fuzzy' ? ` (score: ${result.score.toFixed(3)})` : ' (score: 0)';
     console.debug(

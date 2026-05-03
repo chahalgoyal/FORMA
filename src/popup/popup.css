@@ -69,6 +69,10 @@
   box-sizing: border-box;
 }
 
+html {
+  background: var(--bg-deep);
+}
+
 body {
   width: 340px;
   min-height: 100px;
@@ -77,6 +81,26 @@ body {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Custom Scrollbar ───────────────────── */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 10px;
+}
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }
 
 .hidden {
@@ -141,9 +165,15 @@ body {
   flex-shrink: 0;
 }
 
+@keyframes pulse-soft {
+  0% { box-shadow: 0 0 4px var(--success-dim); }
+  50% { box-shadow: 0 0 10px rgba(122, 158, 108, 0.5); }
+  100% { box-shadow: 0 0 4px var(--success-dim); }
+}
+
 .indicator.complete {
   background: var(--success);
-  box-shadow: 0 0 8px rgba(122, 158, 108, 0.5);
+  animation: pulse-soft 3s infinite ease-in-out;
 }
 
 .indicator.incomplete {
@@ -178,9 +208,10 @@ body {
 }
 
 .btn-primary {
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
   color: #ffffff;
-  box-shadow: 0 2px 12px var(--accent-glow);
+  box-shadow: 0 4px 12px var(--accent-glow);
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
 .btn-primary:hover:not(:disabled) {

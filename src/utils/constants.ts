@@ -8,7 +8,6 @@ import type { StaticMapping, FormaSettings } from '../types/index.js';
 
 export const STORAGE_KEYS = {
   PROFILE: 'forma_profile',
-  LEARNED_MAPPINGS: 'forma_learned_mappings',
   SETTINGS: 'forma_settings',
 } as const;
 

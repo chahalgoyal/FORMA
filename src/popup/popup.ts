@@ -49,7 +49,7 @@ async function initialize(): Promise<void> {
   // Check if we're on a valid webpage (not chrome://)
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    isValidWebpage = tab?.url?.startsWith('http') ?? false;
+    isValidWebpage = (tab?.url?.startsWith('http') || tab?.url?.startsWith('file://')) ?? false;
     if (isValidWebpage && tab?.url) {
       currentHostname = new URL(tab.url).hostname;
     }

@@ -4,14 +4,7 @@
 // ──────────────────────────────────────────────
 
 import type { ProfileKeyPath } from '../types/index.js';
-import { saveLearnedMapping } from '../core/storage/storageManager.js';
 import { checkAiStatus, triggerModelDownload, generateFillMapping } from '../core/ai/aiManager.js';
-
-// Track pending learn candidates for notification responses
-const pendingLearnCandidates = new Map<
-  string,
-  { normalizedLabel: string; resolvedKey: ProfileKeyPath }
->();
 
 // ──────────────────────────────────────────────
 // Message Handler
@@ -141,36 +134,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     }
 
-    // ── Content Script → Service Worker: Learn Candidate ──
-    case 'FORMA_LEARN_CANDIDATE': {
-      const { normalizedLabel, rawLabel, resolvedKey } = message.payload as {
-        normalizedLabel: string;
-        rawLabel: string;
-        enteredValue: string;
-        resolvedKey: ProfileKeyPath;
-      };
-
-      // Create a notification to ask the user
-      const notificationId = `forma-learn-${Date.now()}`;
-
-      pendingLearnCandidates.set(notificationId, {
-        normalizedLabel,
-        resolvedKey,
-      });
-
-      chrome.notifications.create(notificationId, {
-        type: 'basic',
-        iconUrl: 'assets/icon128.png',
-        title: 'Forma — Save Mapping?',
-        message: `Save "${rawLabel}" → ${resolvedKey} for future forms?`,
-        buttons: [{ title: 'Yes, Save' }, { title: 'Dismiss' }],
-        requireInteraction: true,
-      });
-
-      sendResponse({ received: true });
-      return false;
-    }
-
     // ── Content Script → Service Worker: Auto-fill Result ──
     case 'FORMA_RESULT': {
       // This comes from the auto-fill-on-load path
@@ -216,38 +179,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// ──────────────────────────────────────────────
-// Notification Button Handler
-// ──────────────────────────────────────────────
-
-chrome.notifications.onButtonClicked.addListener(
-  async (notificationId, buttonIndex) => {
-    const candidate = pendingLearnCandidates.get(notificationId);
-    if (!candidate) return;
-
-    if (buttonIndex === 0) {
-      // "Yes, Save" — persist the learned mapping
-      await saveLearnedMapping({
-        normalizedLabel: candidate.normalizedLabel,
-        profileKey: candidate.resolvedKey,
-        savedAt: Date.now(),
-      });
-
-      console.debug(
-        `[Forma SW] Learned mapping saved: "${candidate.normalizedLabel}" → "${candidate.resolvedKey}"`
-      );
-    }
-
-    // Clean up
-    pendingLearnCandidates.delete(notificationId);
-    chrome.notifications.clear(notificationId);
-  }
-);
-
-// Also handle notification click (dismiss)
-chrome.notifications.onClicked.addListener((notificationId) => {
-  pendingLearnCandidates.delete(notificationId);
-  chrome.notifications.clear(notificationId);
-});
+// No notification handlers needed anymore
 
 console.debug('[Forma SW] Service worker loaded.');
